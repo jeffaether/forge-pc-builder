@@ -428,7 +428,7 @@ function renderSlots(){
     const name=p?p.name.replace('NVIDIA ','').replace('AMD ','').replace('Intel ','').substring(0,22):'';
     return`<div class="slot-row">
       <div class="slot-dot" style="background:${p?'#b3431c':'rgba(20,20,18,0.16)'};${p?'box-shadow:0 0 6px rgba(179,67,28,0.4)':''}"></div>
-      <span class="slot-name" style="color:${p?'rgba(255,255,255,0.85)':'rgba(255,255,255,0.22)'}">${p?name:c.label.replace(' ← last','')}</span>
+      <span class="slot-name" style="color:${p?'var(--text)':'var(--text-dim)'}">${p?name:c.label.replace(' ← last','')}</span>
     </div>`;
   }).join('');
   document.getElementById('rgb-strip').style.display=Object.keys(picks).length>2?'flex':'none';
@@ -441,7 +441,7 @@ function renderAll(){
   const btn=document.getElementById('btn-bench');btn.disabled=cnt<7;
   document.getElementById('parts-label').textContent=`${cnt} of 7 components selected`;
   const pips=document.getElementById('parts-pips');
-  pips.innerHTML=CATS.map(c=>`<div class="parts-pip" style="background:${picks[c.id]?'var(--accent)':'rgba(255,255,255,0.1)'}"></div>`).join('');
+  pips.innerHTML=CATS.map(c=>`<div class="parts-pip" style="background:${picks[c.id]?'var(--accent)':'var(--border-hover)'}"></div>`).join('');
   if(cnt>0&&picks.gpu){
     const sc=getScore(),t=tierOf(sc);
     document.getElementById('ov-score').innerHTML=`<span style="color:${t.c};font-weight:600">${sc} <span style="font-size:10px;opacity:.6">/ 100</span></span>`;
