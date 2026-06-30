@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FORGE — Custom Gaming PCs, Taiwan-Built</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f4f2;
+  --surface:#ffffff;
+  --surface2:#f0f0ee;
+  --surface3:#e7e7e4;
+  --border:rgba(20,20,18,0.10);
+  --border-hover:rgba(20,20,18,0.22);
+  --accent:#b3431c;
+  --accent-glow:rgba(179,67,28,0.10);
+  --accent-light:#c75426;
+  --accent-dark:#8c3315;
+  --text:#161614;
+  --text-muted:#5c5c58;
+  --text-dim:#94948f;
+  --green:#1c7d4d;
+  --gold:#9a6b15;
+  --blue:#1d5fc9;
+  --red:#c4321f;
+  --shadow-sm:0 1px 2px rgba(20,20,18,0.06),0 1px 1px rgba(20,20,18,0.04);
+  --shadow-md:0 6px 20px rgba(20,20,18,0.08),0 2px 6px rgba(20,20,18,0.05);
+  --shadow-lg:0 20px 50px rgba(20,20,18,0.14);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased}
+
+/* ── LAYOUT ── */
+.app{display:flex;flex-direction:column;height:100vh}
+.header{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:64px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);position:relative;z-index:10}
+.body{display:flex;flex:1;overflow:hidden}
+.viewer{flex:1;position:relative;overflow:hidden;background:linear-gradient(180deg,#eceae5 0%,#dcdad3 100%)}
+.panel{width:408px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--surface)}
+
+/* ── HEADER ── */
+.logo{display:flex;align-items:center;gap:12px}
+.logo-mark{width:30px;height:30px;border-radius:7px;background:var(--text);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-mark svg{width:15px;height:15px;fill:none;stroke:var(--bg)}
+.logo-name{font-size:17px;font-weight:700;letter-spacing:1.5px;color:var(--text)}
+.logo-tag{font-size:10px;color:var(--text-dim);letter-spacing:.8px;margin-top:2px;font-weight:500}
+.steps{display:flex;align-items:center;gap:0;position:absolute;left:50%;transform:translateX(-50%)}
+.step{display:flex;align-items:center;gap:7px;padding:6px 16px;border-radius:7px;font-size:12.5px;font-weight:600;color:var(--text-dim);cursor:default;white-space:nowrap}
+.step.active{color:var(--text);background:var(--surface2)}
+.step.done{color:var(--green)}
+.step-num{width:18px;height:18px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+.step-line{width:24px;height:1px;background:var(--border)}
+.header-right{display:flex;align-items:center;gap:10px}
+.compat-badge{font-size:11.5px;font-weight:600;padding:6px 12px;border-radius:7px;background:rgba(28,125,77,0.08);color:var(--green);border:1px solid rgba(28,125,77,0.22)}
+
+/* ── VIEWER OVERLAYS ── */
+.vov{position:absolute;pointer-events:none}
+.vov-tl{top:16px;left:16px}
+.vov-tr{top:16px;right:16px;text-align:right}
+.vov-bc{bottom:16px;left:50%;transform:translateX(-50%)}
+.glass-card{background:rgba(255,255,255,0.9);border:1px solid var(--border);border-radius:10px;padding:13px 15px;box-shadow:var(--shadow-md);backdrop-filter:blur(6px)}
+.vov-label{font-size:9.5px;letter-spacing:1.4px;color:var(--text-dim);margin-bottom:4px;font-weight:700;text-transform:uppercase}
+.vov-val{font-size:12px;color:var(--text);font-weight:500}
+.vov-price{font-size:23px;font-weight:700;color:var(--text);letter-spacing:-0.5px}
+.vov-score{font-size:15px;font-weight:700}
+.slot-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.slot-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;transition:background .4s,box-shadow .4s}
+.slot-name{font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:155px;transition:color .3s}
+.hint-pill{background:rgba(255,255,255,0.9);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:11px;font-weight:500;color:var(--text-muted);box-shadow:var(--shadow-sm)}
+.rgb-strip{display:flex;gap:4px;margin-top:8px}
+.rgb-dot{width:8px;height:8px;border-radius:50%;animation:pulse 1.8s ease-in-out infinite}
+.rgb-dot:nth-child(2){animation-delay:.3s}
+.rgb-dot:nth-child(3){animation-delay:.6s}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* ── RIGHT PANEL ── */
+.panel-presets{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.preset-chip{padding:6px 13px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-size:11.5px;cursor:pointer;font-family:inherit;font-weight:600;transition:all .15s}
+.preset-chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.preset-chip.titan{border-color:rgba(179,67,28,0.4);color:var(--accent);background:var(--accent-glow)}
+.panel-cats{display:flex;gap:0;padding:0 16px;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;background:var(--surface)}
+.panel-cats::-webkit-scrollbar{display:none}
+.cat-tab{padding:12px 14px;font-size:12.5px;font-weight:600;color:var(--text-dim);cursor:pointer;border:none;background:none;font-family:inherit;white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s;position:relative}
+.cat-tab:hover{color:var(--text-muted)}
+.cat-tab.sel{color:var(--text);border-bottom-color:var(--accent)}
+.cat-tab.dn{color:var(--green)}
+.cat-tab .ck{width:5px;height:5px;border-radius:50%;background:var(--green);position:absolute;top:9px;right:6px}
+.comp-list{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:9px;background:var(--bg)}
+.comp-list::-webkit-scrollbar{width:5px}
+.comp-list::-webkit-scrollbar-track{background:transparent}
+.comp-list::-webkit-scrollbar-thumb{background:rgba(20,20,18,0.16);border-radius:3px}
+.comp-card{border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;background:var(--surface);transition:all .15s;position:relative;overflow:hidden;box-shadow:var(--shadow-sm)}
+.comp-card:hover{border-color:var(--border-hover);transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.comp-card.pk{border-color:var(--accent);background:var(--accent-glow);box-shadow:0 0 0 1px var(--accent),var(--shadow-md)}
+.comp-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:10px}
+.comp-name{font-size:13.5px;font-weight:700;color:var(--text);line-height:1.35}
+.comp-brand{font-size:11px;color:var(--text-dim);margin-top:2px;font-weight:500}
+.comp-right{text-align:right;flex-shrink:0}
+.comp-price{font-size:16.5px;font-weight:700;color:var(--text);letter-spacing:-0.3px}
+.tier-badge{display:inline-block;font-size:9px;font-weight:700;padding:3px 8px;border-radius:5px;letter-spacing:0.5px;margin-top:4px;text-transform:uppercase}
+.tTitan{background:rgba(179,67,28,0.10);color:var(--accent);border:1px solid rgba(179,67,28,0.3)}
+.tUltra{background:rgba(29,95,201,0.08);color:var(--blue);border:1px solid rgba(29,95,201,0.25)}
+.tHigh{background:rgba(28,125,77,0.08);color:var(--green);border:1px solid rgba(28,125,77,0.22)}
+.tMid{background:var(--surface2);color:var(--text-muted);border:1px solid var(--border)}
+.tElite{background:rgba(154,107,21,0.10);color:var(--gold);border:1px solid rgba(154,107,21,0.28)}
+.spec-pills{display:flex;flex-wrap:wrap;gap:5px}
+.spec-pill{font-size:10px;padding:4px 9px;border-radius:6px;background:var(--surface2);color:var(--text-muted);border:1px solid var(--border);font-weight:500}
+.sel-pill{background:rgba(179,67,28,0.10);color:var(--accent);border-color:rgba(179,67,28,0.3)}
+.panel-footer{padding:16px;border-top:1px solid var(--border);flex-shrink:0;background:var(--surface)}
+.footer-row{display:flex;align-items:center;justify-content:space-between}
+.footer-price-label{font-size:10px;color:var(--text-dim);font-weight:700;letter-spacing:1.2px;margin-bottom:3px;text-transform:uppercase}
+.footer-price{font-size:27px;font-weight:700;color:var(--text);letter-spacing:-1px}
+.btn-primary{padding:11px 24px;background:var(--text);color:var(--bg);border:none;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:7px}
+.btn-primary:hover{background:var(--accent)}
+.btn-primary:disabled{opacity:0.3;cursor:default;background:var(--text)}
+.btn-ghost{padding:10px 17px;background:var(--surface);color:var(--text-muted);border:1px solid var(--border-hover);border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.parts-done{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text-dim);margin-top:10px;font-weight:500}
+.parts-pips{display:flex;gap:3px}
+.parts-pip{width:18px;height:3px;border-radius:2px;transition:background .3s}
+
+/* ── PERF PAGE ── */
+#perf-page{display:none;flex-direction:column;height:100%;overflow-y:auto;padding:28px;background:var(--bg)}
+#perf-page::-webkit-scrollbar{width:5px}
+#perf-page::-webkit-scrollbar-thumb{background:rgba(20,20,18,0.16);border-radius:3px}
+.perf-hero{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px}
+.perf-score-block{display:flex;align-items:baseline;gap:10px}
+.perf-big-num{font-size:76px;font-weight:700;letter-spacing:-4px;line-height:1}
+.perf-tier-tag{font-size:13px;font-weight:700;padding:6px 15px;border-radius:8px}
+.perf-stats{display:flex;gap:20px;flex-wrap:wrap;margin-top:10px}
+.perf-stat{text-align:left}
+.perf-stat-label{font-size:10px;color:var(--text-dim);letter-spacing:1px;margin-bottom:3px;font-weight:700;text-transform:uppercase}
+.perf-stat-val{font-size:13.5px;font-weight:600;color:var(--text)}
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.game-card{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface);box-shadow:var(--shadow-sm);transition:transform .15s,box-shadow .15s}
+.game-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.game-banner{width:100%;height:130px;display:block}
+.game-body{padding:13px 15px}
+.game-name{font-size:13.5px;font-weight:700;color:var(--text);margin-bottom:2px}
+.game-genre{font-size:11px;color:var(--text-dim);margin-bottom:11px;font-weight:500}
+.game-fps-row{display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--bg)}
+.game-fps-item{flex:1;padding:9px 6px;text-align:center;border-right:1px solid var(--border)}
+.game-fps-item:last-child{border-right:none}
+.game-fps-res{font-size:9px;color:var(--text-dim);font-weight:700;letter-spacing:.5px;margin-bottom:3px}
+.game-fps-num{font-size:18px;font-weight:700;letter-spacing:-0.5px}
+.game-fps-label{font-size:9px;font-weight:600;margin-top:2px}
+.game-rating{margin-top:8px}
+.rating-pill{font-size:10px;padding:4px 11px;border-radius:7px;font-weight:700}
+.perf-footer{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.comp-card{animation:fadeInUp .25s ease both}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="square"><path d="M5 19V5h8.5a4 4 0 0 1 0 8H9M9 13l6 6"/></svg>
+    </div>
+    <div>
+      <div class="logo-name">FORGE</div>
+      <div class="logo-tag">DESIGNED IN CALIFORNIA · MADE IN TAIWAN</div>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="step active" id="step1"><span class="step-num">1</span>Configure</div>
+    <div class="step-line"></div>
+    <div class="step" id="step2"><span class="step-num">2</span>Benchmark</div>
+    <div class="step-line"></div>
+    <div class="step" id="step3"><span class="step-num">3</span>Order</div>
+  </div>
+  <div class="header-right">
+    <div class="compat-badge" id="compat-badge" style="display:none">✓ Compatible</div>
+    <button class="btn-ghost" onclick="sendToOrder()" id="hdr-order-btn" style="display:none">Order Build →</button>
+  </div>
+</header>
+
+<div class="body">
+
+<!-- 3D VIEWER -->
+<div class="viewer">
+  <canvas id="c3d" style="width:100%;height:100%;display:block"></canvas>
+
+  <!-- Top Left: Build list -->
+  <div class="vov vov-tl glass-card" style="min-width:185px">
+    <div class="vov-label">BUILD</div>
+    <div id="ov-slots"></div>
+    <div class="rgb-strip" id="rgb-strip" style="display:none">
+      <div class="rgb-dot" style="background:#ff5a2e"></div>
+      <div class="rgb-dot" style="background:#06b6d4"></div>
+      <div class="rgb-dot" style="background:#ec4899"></div>
+    </div>
+  </div>
+
+  <!-- Top Right: Price + score -->
+  <div class="vov vov-tr glass-card" style="min-width:140px">
+    <div class="vov-label">BUILD COST</div>
+    <div class="vov-price" id="ov-price">$0</div>
+    <div class="vov-label" style="margin-top:10px">PERF SCORE</div>
+    <div class="vov-score" id="ov-score" style="color:var(--text-dim)">—</div>
+  </div>
+
+  <!-- Bottom: hint -->
+  <div class="vov vov-bc">
+    <div class="hint-pill">Drag to orbit · Scroll to zoom · Add parts to see them appear</div>
+  </div>
+
+  <!-- Bottom Left: trust strip -->
+  <div class="vov" style="bottom:16px;left:16px">
+    <div class="glass-card" style="padding:10px 14px">
+      <div style="font-size:11px;font-weight:600;color:var(--text)">Hand-built and tested in Taipei</div>
+      <div style="font-size:9.5px;color:var(--text-dim);margin-top:1px;letter-spacing:.3px">Sourced direct from component manufacturers · Tested before shipping</div>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL: Build phase -->
+<div class="panel" id="build-panel">
+  <div class="panel-presets">
+    <span style="font-size:10px;color:var(--text-dim);font-weight:600;letter-spacing:1px">QUICK BUILD</span>
+    <button class="preset-chip" onclick="loadPreset('mid')">Mid Perf · $1,599</button>
+    <button class="preset-chip" onclick="loadPreset('high')">High Perf · $2,599</button>
+    <button class="preset-chip titan" onclick="loadPreset('titan')">★ Titan · $4,999</button>
+    <button class="preset-chip" onclick="clearBuild()" style="margin-left:auto;opacity:.6">Clear</button>
+  </div>
+  <div class="panel-cats" id="cat-tabs"></div>
+  <div class="comp-list" id="comp-list"></div>
+  <div class="panel-footer">
+    <div class="footer-row">
+      <div>
+        <div class="footer-price-label">TOTAL PRICE</div>
+        <div class="footer-price" id="total-price">$0</div>
+      </div>
+      <button class="btn-primary" id="btn-bench" disabled onclick="showBench()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Benchmark
+      </button>
+    </div>
+    <div class="parts-done" style="margin-top:10px">
+      <div class="parts-pips" id="parts-pips"></div>
+      <span id="parts-label">0 of 7 components selected</span>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL: Perf phase -->
+<div id="perf-page" style="display:none;flex:1;overflow:hidden">
+  <div style="display:flex;flex-direction:column;height:100%;overflow-y:auto;padding:28px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <button class="btn-ghost" onclick="hideBench()" style="font-size:11px">← Back to build</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn-ghost" onclick="alert('Exporting PDF...')">Export PDF</button>
+        <button class="btn-primary" onclick="alert('Opening order form...')">Order This Build →</button>
+      </div>
+    </div>
+    <!-- Score hero -->
+    <div style="border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;background:var(--surface2)">
+      <div style="font-size:10px;color:var(--text-dim);letter-spacing:1.5px;margin-bottom:6px">PERFORMANCE SCORE</div>
+      <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+        <div class="perf-big-num" id="perf-big-num">—</div>
+        <div id="perf-tier-tag"></div>
+      </div>
+      <div id="perf-stat-row" style="display:flex;gap:24px;flex-wrap:wrap"></div>
+    </div>
+    <!-- Game grid -->
+    <div style="font-size:11px;color:var(--text-dim);letter-spacing:1px;font-weight:600;margin-bottom:12px">GAME PERFORMANCE — MAX SETTINGS · RAY TRACING ON</div>
+    <div class="game-grid" id="game-grid"></div>
+  </div>
+</div>
+
+</div><!-- /body -->
+</div><!-- /app -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+// ============================================================
+//  DATA
+// ============================================================
+const CATS=[
+  {id:'gpu',label:'GPU'},
+  {id:'cpu',label:'CPU'},
+  {id:'ram',label:'RAM'},
+  {id:'storage',label:'Storage'},
+  {id:'cooling',label:'Cooling'},
+  {id:'case',label:'Case ← last'},
+  {id:'psu',label:'PSU'},
+];
+// Real product photos sourced from Wikimedia Commons (CC-licensed, direct-linkable via Special:FilePath)
+function wimg(file,w=500){return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=${w}`;}
+const IMG={
+  gpuNV:wimg('Asus Strix RTX 4090 operational corner view.jpg'),
+  gpuAMD:wimg('Sapphire AMD radeon rx 7900 xtx.JPG'),
+  cpuAMD:wimg('AMD Ryzen 9 5900X by BugWarp 03.jpg'),
+  cpuIntel:wimg('Intel i9-14900K.webp'),
+  ram:wimg('DDR5 SDRAM (with scale) IMGP6298 smial wp.jpg'),
+  ssd:wimg('Samsung 980 PRO PCIe 4.0 NVMe SSD 1TB-top PNr°0915.jpg'),
+  cooling:wimg('Cooler Master ML240P series 20190601.jpg'),
+  case:wimg('Lian Li O11 Dynamic XL 20190601.jpg'),
+  psu:wimg('ATX Computer power supply unit.jpg'),
+};
+const COMPS={
+  gpu:[
+    {id:'rtx4090',name:'NVIDIA GeForce RTX 4090',brand:'ASUS ROG Strix 24G OC',price:1599,score:100,tier:'Titan',specs:['24GB GDDR6X','450W TDP','DLSS 3.5','Ada Lovelace'],watts:450,img:IMG.gpuNV},
+    {id:'rtx4080s',name:'NVIDIA RTX 4080 Super',brand:'MSI Gaming X Trio',price:999,score:82,tier:'Ultra',specs:['16GB GDDR6X','320W TDP','DLSS 3.5'],watts:320,img:IMG.gpuNV},
+    {id:'rx7900xtx',name:'AMD Radeon RX 7900 XTX',brand:'Sapphire Nitro+ OC',price:899,score:78,tier:'Ultra',specs:['24GB GDDR6','355W TDP','FSR 3.0'],watts:355,img:IMG.gpuAMD},
+    {id:'rtx4070tis',name:'NVIDIA RTX 4070 Ti Super',brand:'Gigabyte Aorus Master',price:799,score:72,tier:'High',specs:['16GB GDDR6X','285W TDP','DLSS 3.5'],watts:285,img:IMG.gpuNV},
+    {id:'rtx4070s',name:'NVIDIA RTX 4070 Super',brand:'EVGA XC3 Ultra',price:599,score:62,tier:'High',specs:['12GB GDDR6X','220W TDP','DLSS 3.5'],watts:220,img:IMG.gpuNV},
+  ],
+  cpu:[
+    {id:'r9-7950x3d',name:'AMD Ryzen 9 7950X3D',brand:'AM5 · 16-core',price:699,score:10,tier:'Elite',specs:['16C / 32T','5.7GHz Boost','128MB 3D V-Cache'],watts:120,img:IMG.cpuAMD},
+    {id:'i9-14900k',name:'Intel Core i9-14900K',brand:'LGA1700 · 24-core',price:589,score:10,tier:'Elite',specs:['24C / 32T','6.0GHz Boost','Intel Thread Director'],watts:125,img:IMG.cpuIntel},
+    {id:'r7-7800x3d',name:'AMD Ryzen 7 7800X3D',brand:'AM5 · 8-core',price:449,score:9,tier:'High',specs:['8C / 16T','5.0GHz Boost','3D V-Cache Gaming'],watts:120,img:IMG.cpuAMD},
+    {id:'i7-14700k',name:'Intel Core i7-14700K',brand:'LGA1700 · 20-core',price:409,score:8,tier:'High',specs:['20C / 28T','5.6GHz Boost','Intel UHD 770'],watts:125,img:IMG.cpuIntel},
+    {id:'i5-14600k',name:'Intel Core i5-14600K',brand:'LGA1700 · 14-core',price:319,score:7,tier:'Mid',specs:['14C / 20T','5.3GHz Boost','Intel UHD 770'],watts:125,img:IMG.cpuIntel},
+  ],
+  ram:[
+    {id:'64ddr5',name:'64GB DDR5-6000 CL30',brand:'G.Skill Trident Z5 RGB',price:189,score:3,tier:'Ultra',specs:['64GB Dual Channel','DDR5-6000','CL30-36-36-96','XMP 3.0'],img:IMG.ram},
+    {id:'32ddr5',name:'32GB DDR5-6000 CL30',brand:'Kingston Fury Beast RGB',price:119,score:2,tier:'High',specs:['32GB Dual Channel','DDR5-6000','CL30','XMP 3.0'],img:IMG.ram},
+    {id:'32ddr4',name:'32GB DDR4-3600 CL16',brand:'Corsair Vengeance RGB Pro',price:89,score:1,tier:'Mid',specs:['32GB Dual Channel','DDR4-3600','CL16','XMP 2.0'],img:IMG.ram},
+    {id:'16ddr5',name:'16GB DDR5-6000',brand:'Crucial Pro',price:79,score:0,tier:'Mid',specs:['16GB Dual Channel','DDR5-6000','CL30'],img:IMG.ram},
+  ],
+  storage:[
+    {id:'4tb-g4',name:'4TB PCIe Gen4 NVMe SSD',brand:'Samsung 990 Pro',price:299,score:2,tier:'Ultra',specs:['4TB','7,450 MB/s Read','PCIe 4.0 x4'],img:IMG.ssd},
+    {id:'2tb-g4',name:'2TB PCIe Gen4 NVMe SSD',brand:'WD Black SN850X',price:179,score:1,tier:'High',specs:['2TB','7,300 MB/s Read','PCIe 4.0 x4'],img:IMG.ssd},
+    {id:'2tb-g3',name:'2TB PCIe Gen3 NVMe SSD',brand:'Crucial P3 Plus',price:129,score:0,tier:'Mid',specs:['2TB','5,000 MB/s Read','PCIe 3.0 x4'],img:IMG.ssd},
+    {id:'1tb-g4',name:'1TB PCIe Gen4 NVMe SSD',brand:'Samsung 980 Pro',price:109,score:0,tier:'Mid',specs:['1TB','7,000 MB/s Read','PCIe 4.0 x4'],img:IMG.ssd},
+  ],
+  cooling:[
+    {id:'360aio',name:'360mm AIO Liquid Cooler',brand:'NZXT Kraken Elite 360',price:249,score:2,tier:'Ultra',specs:['360mm Radiator','LCD Display Head','6× 120mm Fans'],img:IMG.cooling},
+    {id:'280aio',name:'280mm AIO Liquid Cooler',brand:'Corsair H115i Elite Capellix',price:149,score:1,tier:'High',specs:['280mm Radiator','RGB Pump Head','2× 140mm LL Fans'],img:IMG.cooling},
+    {id:'240aio',name:'240mm AIO Liquid Cooler',brand:'Arctic Liquid Freezer III',price:89,score:0,tier:'Mid',specs:['240mm Radiator','VRM Fan','2× 120mm Fans'],img:IMG.cooling},
+    {id:'air',name:'Premium Air Tower',brand:'Noctua NH-D15 chromax.black',price:99,score:0,tier:'Mid',specs:['Dual Tower Design','6 Copper Heatpipes','2× NF-A15 Fans'],img:IMG.cooling},
+  ],
+  case:[
+    {id:'ft',name:'Full Tower Premium',brand:'Lian Li O11 Dynamic EVO XL',price:199,score:2,tier:'Ultra',specs:['E-ATX / ATX','3× Tempered Glass','USB-C 3.2 Gen2'],img:IMG.case},
+    {id:'mt-p',name:'Mid Tower — Premium',brand:'NZXT H7 Flow RGB',price:149,score:1,tier:'High',specs:['ATX','Perforated Mesh Front','Tempered Glass Side'],img:IMG.case},
+    {id:'mt-s',name:'Mid Tower — Standard',brand:'Fractal Design Pop Air',price:99,score:0,tier:'Mid',specs:['ATX','Mesh Front Panel','USB-C Front'],img:IMG.case},
+  ],
+  psu:[
+    {id:'1000w',name:'1000W 80+ Titanium',brand:'Seasonic Prime TX-1000',price:229,score:2,tier:'Ultra',specs:['1000W Output','80 Plus Titanium','Fully Modular'],watts:1000,img:IMG.psu},
+    {id:'850w',name:'850W 80+ Gold',brand:'Corsair RM850x SHIFT',price:139,score:1,tier:'High',specs:['850W Output','80 Plus Gold','Fully Modular'],watts:850,img:IMG.psu},
+    {id:'750w',name:'750W 80+ Gold',brand:'EVGA SuperNOVA 750 G6',price:109,score:0,tier:'Mid',specs:['750W Output','80 Plus Gold','Fully Modular'],watts:750,img:IMG.psu},
+    {id:'650w',name:'650W 80+ Bronze',brand:'EVGA 650 B7',price:79,score:0,tier:'Mid',specs:['650W Output','80 Plus Bronze','Semi-Modular'],watts:650,img:IMG.psu},
+  ],
+};
+const PRESETS={
+  mid:{gpu:'rtx4070s',cpu:'i5-14600k',ram:'32ddr4',storage:'2tb-g3',cooling:'240aio',case:'mt-s',psu:'650w'},
+  high:{gpu:'rtx4070tis',cpu:'r7-7800x3d',ram:'32ddr5',storage:'2tb-g4',cooling:'280aio',case:'mt-p',psu:'850w'},
+  titan:{gpu:'rtx4090',cpu:'r9-7950x3d',ram:'64ddr5',storage:'4tb-g4',cooling:'360aio',case:'ft',psu:'1000w'},
+};
+const GAMES=[
+  {name:'Cyberpunk 2077',genre:'Open World RPG · Path Tracing',fps1080:[58,88,122,158],fps1440:[38,60,86,116],fps4k:[22,35,52,72],c1:'#1a0533',c2:'#7c3aed',c3:'#22d3ee'},
+  {name:'Call of Duty: Black Ops 6',genre:'FPS Multiplayer',fps1080:[95,145,200,260],fps1440:[68,105,148,192],fps4k:[42,65,92,120],c1:'#1c0f00',c2:'#b45309',c3:'#fbbf24'},
+  {name:'Microsoft Flight Simulator 2024',genre:'Simulation · DirectX 12',fps1080:[38,58,82,108],fps1440:[26,40,58,78],fps4k:[15,24,35,48],c1:'#050f1c',c2:'#0369a1',c3:'#38bdf8'},
+  {name:"Marvel's Spider-Man 2",genre:'Action Adventure',fps1080:[62,95,132,168],fps1440:[44,68,98,128],fps4k:[26,42,62,82],c1:'#1c0505',c2:'#991b1b',c3:'#f87171'},
+  {name:'Alan Wake 2',genre:'Survival Horror · Full RT',fps1080:[42,65,92,122],fps1440:[28,46,66,88],fps4k:[16,26,38,52],c1:'#031209',c2:'#065f46',c3:'#34d399'},
+  {name:'Elden Ring: Shadow of the Erdtree',genre:'Action RPG',fps1080:[60,90,122,158],fps1440:[42,65,92,120],fps4k:[25,38,58,78],c1:'#110900',c2:'#92400e',c3:'#f59e0b'},
+];
+
+// ============================================================
+//  STATE + UI
+// ============================================================
+let curCat='gpu',picks={},gpuScore=0;
+
+function getScore(){
+  const g=picks.gpu,c=picks.cpu,r=picks.ram,s=picks.storage,co=picks.cooling;
+  gpuScore=g?g.score:0;
+  return Math.round((gpuScore*(c?c.score/10:1))+((r?r.score:0)+(s?s.score:0)+(co?co.score:0))*0.4);
+}
+function tierOf(sc){
+  if(sc>=95)return{l:'TITAN RIG',bg:'rgba(179,67,28,0.10)',c:'#b3431c',border:'rgba(179,67,28,0.3)'};
+  if(sc>=75)return{l:'ULTRA RIG',bg:'rgba(29,95,201,0.08)',c:'#1d5fc9',border:'rgba(29,95,201,0.25)'};
+  if(sc>=55)return{l:'HIGH-PERF RIG',bg:'rgba(28,125,77,0.08)',c:'#1c7d4d',border:'rgba(28,125,77,0.22)'};
+  return{l:'MID-RANGE RIG',bg:'rgba(154,107,21,0.10)',c:'#9a6b15',border:'rgba(154,107,21,0.28)'};
+}
+function fpsOf(game,res){
+  const ti=gpuScore>=95?3:gpuScore>=78?2:gpuScore>=62?1:0;
+  return(res==='1080p'?game.fps1080:res==='1440p'?game.fps1440:game.fps4k)[ti];
+}
+function fpsStyle(fps){
+  if(fps>=144)return{color:'#1c7d4d',label:'Buttery'};
+  if(fps>=100)return{color:'#1d5fc9',label:'Ultra'};
+  if(fps>=60)return{color:'#b3431c',label:'Smooth'};
+  if(fps>=30)return{color:'#9a6b15',label:'Playable'};
+  return{color:'#c4321f',label:'Choppy'};
+}
+function loadPreset(k){const p=PRESETS[k];Object.keys(p).forEach(cat=>{picks[cat]=COMPS[cat].find(c=>c.id===p[cat])});renderAll();update3D();}
+function clearBuild(){picks={};renderAll();update3D();}
+function setCat(c){curCat=c;renderTabs();renderList();}
+function pick(cat,id){
+  picks[cat]=COMPS[cat].find(c=>c.id===id);
+  renderAll();update3D();
+  const next=CATS.find(c=>!picks[c.id]);
+  if(next)setTimeout(()=>setCat(next.id),120);
+}
+function renderTabs(){
+  document.getElementById('cat-tabs').innerHTML=CATS.map(c=>`
+    <button class="cat-tab ${curCat===c.id?'sel':''} ${picks[c.id]?'dn':''}" onclick="setCat('${c.id}')">
+      ${c.label}${picks[c.id]?'<span class="ck"></span>':''}
+    </button>`).join('');
+}
+function renderList(){
+  document.getElementById('comp-list').innerHTML=COMPS[curCat].map((c,i)=>{
+    const pk=picks[curCat]&&picks[curCat].id===c.id;
+    return`<div class="comp-card ${pk?'pk':''}" onclick="pick('${curCat}','${c.id}')" style="animation-delay:${i*0.04}s">
+      <div style="display:flex;gap:12px">
+        <img src="${c.img}" alt="${c.name}" loading="lazy" style="width:88px;height:72px;object-fit:contain;object-position:center;border-radius:8px;background:radial-gradient(circle,#dcdce2,#c4c4cc);border:1px solid var(--border);flex-shrink:0;padding:4px;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.04)">
+        <div style="flex:1;min-width:0">
+          <div class="comp-top" style="margin-bottom:6px">
+            <div><div class="comp-name">${c.name}</div><div class="comp-brand">${c.brand}</div><div style="margin-top:5px"><span class="tier-badge t${c.tier}">${c.tier}</span></div></div>
+            <div class="comp-right"><div class="comp-price">$${c.price.toLocaleString()}</div>${pk?'<div style="font-size:10px;color:var(--accent-light);margin-top:3px;font-weight:600">✓ Selected</div>':''}</div>
+          </div>
+          <div class="spec-pills">${c.specs.map(s=>`<span class="spec-pill ${pk?'sel-pill':''}">${s}</span>`).join('')}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function renderSlots(){
+  document.getElementById('ov-slots').innerHTML=CATS.map(c=>{
+    const p=picks[c.id];
+    const name=p?p.name.replace('NVIDIA ','').replace('AMD ','').replace('Intel ','').substring(0,22):'';
+    return`<div class="slot-row">
+      <div class="slot-dot" style="background:${p?'#b3431c':'rgba(20,20,18,0.16)'};${p?'box-shadow:0 0 6px rgba(179,67,28,0.4)':''}"></div>
+      <span class="slot-name" style="color:${p?'rgba(255,255,255,0.85)':'rgba(255,255,255,0.22)'}">${p?name:c.label.replace(' ← last','')}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('rgb-strip').style.display=Object.keys(picks).length>2?'flex':'none';
+}
+function renderAll(){
+  renderTabs();renderList();renderSlots();
+  const cnt=Object.keys(picks).length,total=Object.values(picks).reduce((s,p)=>s+p.price,0);
+  document.getElementById('total-price').textContent=`$${total.toLocaleString()}`;
+  document.getElementById('ov-price').textContent=`$${total.toLocaleString()}`;
+  const btn=document.getElementById('btn-bench');btn.disabled=cnt<7;
+  document.getElementById('parts-label').textContent=`${cnt} of 7 components selected`;
+  const pips=document.getElementById('parts-pips');
+  pips.innerHTML=CATS.map(c=>`<div class="parts-pip" style="background:${picks[c.id]?'var(--accent)':'rgba(255,255,255,0.1)'}"></div>`).join('');
+  if(cnt>0&&picks.gpu){
+    const sc=getScore(),t=tierOf(sc);
+    document.getElementById('ov-score').innerHTML=`<span style="color:${t.c};font-weight:600">${sc} <span style="font-size:10px;opacity:.6">/ 100</span></span>`;
+  } else {
+    document.getElementById('ov-score').innerHTML='<span style="color:var(--text-dim)">—</span>';
+  }
+  if(cnt>=6){document.getElementById('compat-badge').style.display='';document.getElementById('hdr-order-btn').style.display='';}
+  else{document.getElementById('compat-badge').style.display='none';document.getElementById('hdr-order-btn').style.display='none';}
+}
+function showBench(){
+  document.getElementById('build-panel').style.display='none';
+  document.getElementById('perf-page').style.display='flex';
+  document.getElementById('step1').classList.remove('active');document.getElementById('step1').classList.add('done');
+  document.getElementById('step2').classList.add('active');
+  const sc=getScore(),t=tierOf(sc);
+  const el=document.getElementById('perf-big-num');
+  let n=0;const iv=setInterval(()=>{n=Math.min(n+Math.ceil(sc/18),sc);el.textContent=n;if(n>=sc)clearInterval(iv);},30);
+  document.getElementById('perf-tier-tag').innerHTML=`<span class="perf-tier-tag" style="background:${t.bg};color:${t.c};border:1px solid ${t.border}">${t.l}</span>`;
+  const gpu=picks.gpu,cpu=picks.cpu;
+  document.getElementById('perf-stat-row').innerHTML=[
+    {l:'GPU',v:gpu.name.replace('NVIDIA ','').replace('AMD ','')},
+    {l:'CPU',v:cpu.name.replace('AMD ','').replace('Intel ','')},
+    {l:'VRAM',v:gpu.specs[0]},
+    {l:'4K Ready',v:gpuScore>=78?'Yes ✓':'Limited'},
+    {l:'Ray Tracing',v:gpuScore>=72?'Full RT ✓':'Partial'},
+  ].map(s=>`<div class="perf-stat"><div class="perf-stat-label">${s.l}</div><div class="perf-stat-val">${s.v}</div></div>`).join('');
+  renderGameGrid();
+}
+function hideBench(){
+  document.getElementById('build-panel').style.display='flex';
+  document.getElementById('perf-page').style.display='none';
+  document.getElementById('step1').classList.add('active');document.getElementById('step1').classList.remove('done');
+  document.getElementById('step2').classList.remove('active');
+}
+function sendToOrder(){alert('Opening FORGE order portal — Taiwan production lead time: 7–10 business days');}
+function renderGameGrid(){
+  document.getElementById('game-grid').innerHTML=GAMES.map((g,i)=>{
+    const f1=fpsOf(g,'1080p'),f2=fpsOf(g,'1440p'),f4=fpsOf(g,'4K');
+    const s2=fpsStyle(f2);
+    return`<div class="game-card">
+      <canvas class="game-banner" id="gbv${i}" width="600" height="260"></canvas>
+      <div class="game-body">
+        <div class="game-name">${g.name}</div>
+        <div class="game-genre">${g.genre}</div>
+        <div class="game-fps-row">
+          ${[['1080P',f1],['1440P',f2],['4K',f4]].map(([r,fps])=>{const s=fpsStyle(fps);return`<div class="game-fps-item"><div class="game-fps-res">${r}</div><div class="game-fps-num" style="color:${s.color}">${fps}</div><div class="game-fps-label" style="color:${s.color};opacity:.7">${s.label}</div></div>`}).join('')}
+        </div>
+        <div class="game-rating" style="margin-top:8px">
+          <span class="rating-pill" style="background:rgba(179,67,28,0.10);color:${s2.color};border:1px solid rgba(179,67,28,0.25)">${s2.label} at 1440p · ${f2} FPS</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  GAMES.forEach((g,i)=>{
+    const cv=document.getElementById('gbv'+i);if(!cv)return;
+    const ctx=cv.getContext('2d');const W=cv.width,H=cv.height;let t=0;
+    const pts=Array.from({length:20},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*1.2,vy:(Math.random()-.5)*1,r:Math.random()*2.5+1}));
+    (function draw(){
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle=g.c1;ctx.fillRect(0,0,W,H);
+      ctx.fillStyle=g.c2;ctx.globalAlpha=0.3;
+      for(let j=0;j<5;j++){const x=((j*W/4+t*0.4*(j%2?1:-1))%W+W)%W;ctx.fillRect(x,0,W/8,H);}
+      ctx.globalAlpha=1;
+      ctx.strokeStyle=g.c3;ctx.lineWidth=1;ctx.globalAlpha=0.4;
+      ctx.beginPath();for(let x=0;x<W;x+=2)ctx.lineTo(x,H*.6+Math.sin((x+t)*.04)*20+Math.cos((x+t)*.015)*28);ctx.stroke();
+      ctx.globalAlpha=1;
+      for(let y=0;y<H;y+=5){ctx.fillStyle='rgba(0,0,0,0.06)';ctx.fillRect(0,y,W,2);}
+      pts.forEach(p=>{p.x=(p.x+p.vx+W)%W;p.y=(p.y+p.vy+H)%H;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=g.c3;ctx.globalAlpha=0.55;ctx.fill();ctx.globalAlpha=1;});
+      const fps=fpsOf(g,'1440p');
+      ctx.font='bold 13px monospace';ctx.fillStyle=g.c3;ctx.globalAlpha=.9;ctx.fillText(fps+' FPS',W-72,18);ctx.fillText('1440p',W-60,34);
+      ctx.globalAlpha=1;ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,H-26,W,26);
+      ctx.font='9px monospace';ctx.fillStyle=g.c3;ctx.globalAlpha=0.8;ctx.fillText('MAX SETTINGS · RAY TRACING ULTRA · AI UPSCALING ON',10,H-9);
+      ctx.globalAlpha=1;t++;requestAnimationFrame(draw);
+    })();
+  });
+}
+
+// ============================================================
+//  THREE.JS 3D SCENE
+// ============================================================
+(function init3D(){
+  if(typeof THREE==='undefined'){setTimeout(init3D,80);return;}
+  const canvas=document.getElementById('c3d');
+  const vp=canvas.parentElement;
+  function sz(){return{w:vp.clientWidth,h:vp.clientHeight};}
+  const {w,h}=sz();
+
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setSize(w,h);
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.3;
+  renderer.setClearColor(0xe5e3dd);
+
+  const scene=new THREE.Scene();
+  scene.fog=new THREE.Fog(0xe5e3dd,5,11);
+
+  const camera=new THREE.PerspectiveCamera(42,w/h,0.01,20);
+  // Camera pulled back so the whole case is visible by default
+  camera.position.set(-1.9,0.75,1.7);
+
+  const controls=new THREE.OrbitControls(camera,canvas);
+  controls.enableDamping=true;controls.dampingFactor=0.05;
+  controls.minDistance=1.0;controls.maxDistance=4.5;
+  controls.target.set(0.05,0.0,0);controls.update();
+
+  // Floor grid
+  const grid=new THREE.GridHelper(8,30,0xb8b6ae,0xcfcdc6);
+  grid.position.y=-0.57;scene.add(grid);
+
+  // ── LIGHTING (MUCH BRIGHTER) ──
+  // Bright ambient
+  scene.add(new THREE.AmbientLight(0xffffff,1.3));
+  // Key light from top-left
+  const key=new THREE.DirectionalLight(0xffffff,1.7);
+  key.position.set(-3,5,3);key.castShadow=true;
+  key.shadow.mapSize.set(1024,1024);scene.add(key);
+  // Fill from right
+  const fill=new THREE.DirectionalLight(0xaabbff,1.2);
+  fill.position.set(3,2,-1);scene.add(fill);
+  // Rim light from behind
+  const rim=new THREE.DirectionalLight(0x6699ff,0.8);
+  rim.position.set(0,3,-3);scene.add(rim);
+  // Front light (toward camera direction) — brightens front face
+  const front=new THREE.DirectionalLight(0xffffff,0.8);
+  front.position.set(-2,1,4);scene.add(front);
+  // Under-glow
+  const under=new THREE.PointLight(0x3333ff,1.0,2.0);
+  under.position.set(0,-0.4,0);scene.add(under);
+
+  // RGB interior point lights
+  const rgbPts=[];
+  [[0,0.15,-0.08],[0.05,-0.22,0.08],[0.05,0.35,-0.08]].forEach((p,i)=>{
+    const l=new THREE.PointLight(0x00ffff,3.5,0.9);l.position.set(...p);scene.add(l);
+    rgbPts.push({l,o:i*(Math.PI*2/3)});
+  });
+
+  // ── HELPERS ──
+  function bx(w,h,d,mat,px=0,py=0,pz=0){
+    const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+    m.position.set(px,py,pz);m.castShadow=true;m.receiveShadow=true;return m;
+  }
+  function cyl(rt,rb,h,seg,mat,px=0,py=0,pz=0){
+    const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg),mat);
+    m.position.set(px,py,pz);return m;
+  }
+  function tor(r,t,seg,mat){return new THREE.Mesh(new THREE.TorusGeometry(r,t,8,seg),mat);}
+  function rgb(col=0x00ffff,ei=5){return new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:ei});}
+
+  // ── MATERIALS (BRIGHTER, BETTER) ──
+  const mCase=new THREE.MeshStandardMaterial({color:0xe2e2e2,metalness:0.12,roughness:0.4}); // bright white, less glare
+  const mCaseMesh=new THREE.MeshStandardMaterial({color:0x141414,metalness:0.7,roughness:0.15});
+  const mGlass=new THREE.MeshBasicMaterial({color:0x335577,transparent:true,opacity:0.16,side:THREE.DoubleSide,depthWrite:false});
+  const mPCB=new THREE.MeshStandardMaterial({color:0x0d2010,metalness:0.1,roughness:0.75}); // visible dark green
+  const mGPU=new THREE.MeshStandardMaterial({color:0x181818,metalness:0.55,roughness:0.2});
+  const mAlum=new THREE.MeshStandardMaterial({color:0xcccccc,metalness:0.7,roughness:0.22});
+  const mRAM=new THREE.MeshStandardMaterial({color:0xf2f2f2,metalness:0.2,roughness:0.35});
+  const mFan=new THREE.MeshStandardMaterial({color:0x222222,metalness:0.45,roughness:0.35,side:THREE.DoubleSide});
+  const mFanFrame=new THREE.MeshStandardMaterial({color:0x202020,metalness:0.6,roughness:0.28});
+  const mSocket=new THREE.MeshStandardMaterial({color:0x998855,metalness:0.8,roughness:0.18});
+  const mDark=new THREE.MeshStandardMaterial({color:0x0a0a0a,metalness:0.5,roughness:0.3});
+  const mSilver=new THREE.MeshStandardMaterial({color:0xaaaaaa,metalness:0.75,roughness:0.2});
+
+  const CC=new THREE.Color();
+  const allSpinners=[];
+  const allRGB=[];
+
+  function makeFan(size,col=0x00aaff){
+    const fg=new THREE.Group();
+    fg.add(bx(size,size,0.022,mFanFrame));
+    const spin=new THREE.Group();
+    for(let b=0;b<7;b++){
+      const a=(b/7)*Math.PI*2;
+      const bl=bx(size*.25,size*.4,0.008,mFan,Math.sin(a)*size*.22,Math.cos(a)*size*.22,0.005);
+      bl.rotation.z=a+0.5;spin.add(bl);
+    }
+    spin.add(cyl(size*.08,size*.08,0.018,12,mDark));
+    fg.add(spin);
+    const rm=rgb(col,4.5);
+    const ring=tor(size*.43,0.007,48,rm);fg.add(ring);
+    const pl=new THREE.PointLight(col,3.0,size*3.5);fg.add(pl);
+    allSpinners.push(spin);
+    allRGB.push({mat:rm,pl,offset:Math.random()*Math.PI*2});
+    return fg;
+  }
+
+  // ── COMPONENT MESH BUILDERS ──
+  const meshes={};
+
+  function buildMotherboard(){
+    const g=new THREE.Group();
+    g.add(bx(0.018,0.72,0.56,mPCB));
+    // PCIe slots
+    for(let i=0;i<4;i++) g.add(bx(0.022,0.008,0.38,new THREE.MeshStandardMaterial({color:0x333333,metalness:0.8,roughness:0.2}),0.001,-0.08+i*0.07,0.02));
+    // CPU socket
+    g.add(bx(0.022,0.12,0.12,mSocket,0.001,0.18,-0.06));
+    g.add(bx(0.022,0.09,0.09,mDark,0.001,0.18,-0.06));
+    // RAM slots
+    for(let i=0;i<4;i++) g.add(bx(0.022,0.46,0.032,new THREE.MeshStandardMaterial({color:0x2a2a2a,metalness:0.7,roughness:0.2}),0.001,0.12,0.065+i*0.048));
+    // VRM heatsinks
+    for(let i=0;i<3;i++){
+      g.add(bx(0.04,0.065,0.04,mDark,0.02,0.26,0.06+i*0.048));
+      for(let f=0;f<6;f++) g.add(bx(0.038,0.002,0.04,mSilver,0.02,0.238+f*0.006,0.06+i*0.048));
+    }
+    // IO shield
+    g.add(bx(0.04,0.15,0.34,new THREE.MeshStandardMaterial({color:0x555555,metalness:0.8,roughness:0.1}),0.022,0.28,-0.22));
+    // Chipset heatsink
+    g.add(bx(0.04,0.06,0.06,mDark,0.02,-0.04,-0.15));
+    // RGB accent bar bottom
+    const rm=rgb(0x0088ff,3.5);
+    g.add(bx(0.024,0.008,0.56,rm,0,-0.365,0));
+    allRGB.push({mat:rm,pl:null,offset:1.4});
+    g.position.set(0.21,0.02,0.0);
+    return g;
+  }
+
+  function buildGPU(){
+    const g=new THREE.Group();
+    // GPU vertical mount (fans face -X toward glass/camera)
+    g.add(bx(0.018,0.46,0.12,mPCB,-0.01,0,0));
+    g.add(bx(0.072,0.46,0.122,mGPU,0.028,0,0));
+    // Heatsink fins (bright silver)
+    for(let i=0;i<16;i++) g.add(bx(0.065,0.002,0.118,mSilver,0.028,-0.19+i*0.024,0));
+    // GPU RGB bar
+    const gr=rgb(0xff00cc,4);
+    g.add(bx(0.075,0.01,0.125,gr,0.03,0.225,0));
+    allRGB.push({mat:gr,pl:null,offset:2.2});
+    // 3 fans facing -X
+    [-0.14,0,0.14].forEach((z,i)=>{
+      const f=makeFan(0.13,0x00d4ff);
+      f.rotation.y=Math.PI/2;f.position.set(-0.008,0,z);g.add(f);
+    });
+    // Backplate
+    g.add(bx(0.008,0.46,0.122,new THREE.MeshStandardMaterial({color:0x282828,metalness:0.7,roughness:0.2}),0.075,0,0));
+    // Bracket with ports
+    g.add(bx(0.01,0.46,0.025,new THREE.MeshStandardMaterial({color:0x666666,metalness:0.8,roughness:0.1}),0.078,0,0.073));
+    for(let i=0;i<3;i++) g.add(bx(0.015,0.018,0.01,mDark,0.08,-0.05+i*0.08,0.073));
+    g.position.set(-0.06,-0.28,0);
+    return g;
+  }
+
+  function buildCooling(){
+    const g=new THREE.Group();
+    // Radiator
+    g.add(bx(0.025,0.14,0.46,mAlum,0,0,0));
+    for(let i=0;i<24;i++) g.add(bx(0.02,0.003,0.46,new THREE.MeshStandardMaterial({color:0xbbbbbb,metalness:0.6,roughness:0.3}),0,-0.07+i*0.0058,0));
+    // Tubes
+    g.add(bx(0.012,0.22,0.012,mDark,0.02,0.14,-0.05));
+    g.add(bx(0.012,0.22,0.012,mDark,0.02,0.14,-0.11));
+    // Pump head
+    const pump=cyl(0.045,0.045,0.04,20,mDark,0.02,0.28,-0.08);pump.rotation.z=Math.PI/2;g.add(pump);
+    // Pump RGB ring
+    const pr=rgb(0x00ffcc,4.5);
+    const pring=tor(0.038,0.008,36,pr);pring.rotation.y=Math.PI/2;pring.position.set(0.005,0.28,-0.08);g.add(pring);
+    allRGB.push({mat:pr,pl:null,offset:0.7});
+    // 3 AIO fans
+    for(let i=0;i<3;i++){const f=makeFan(0.13,0x00aaff);f.rotation.y=Math.PI/2;f.position.set(-0.07,0,-0.155+i*0.155);g.add(f);}
+    g.position.set(0.1,0.42,-0.08);
+    return g;
+  }
+
+  function buildRAM(){
+    const g=new THREE.Group();
+    for(let i=0;i<4;i++){
+      const sg=new THREE.Group();
+      sg.add(bx(0.018,0.46,0.034,mRAM));
+      sg.add(bx(0.022,0.018,0.036,rgb(0x00ccff,5),0,0.24,0));
+      allRGB.push({mat:sg.children[1].material,pl:null,offset:i*0.45});
+      sg.position.set(0,0,i*0.048);
+      g.add(sg);
+    }
+    g.position.set(0.22,0.12,0.06);
+    return g;
+  }
+
+  function buildStorage(){
+    const g=new THREE.Group();
+    g.add(bx(0.022,0.008,0.18,new THREE.MeshStandardMaterial({color:0x1a2e1a,metalness:0.15,roughness:0.75})));
+    for(let i=0;i<4;i++) g.add(bx(0.024,0.01,0.028,new THREE.MeshStandardMaterial({color:0x333333,metalness:0.6,roughness:0.3}),0,0.003,-0.065+i*0.038));
+    g.add(bx(0.032,0.016,0.18,mSilver,0,0.008,0));
+    g.position.set(0.22,-0.02,-0.15);
+    return g;
+  }
+
+  function buildPSU(){
+    const g=new THREE.Group();
+    g.add(bx(0.46,0.09,0.18,new THREE.MeshStandardMaterial({color:0x121212,metalness:0.6,roughness:0.3})));
+    const f=makeFan(0.07,0x555555);f.position.set(0,0.046,0.02);f.rotation.x=-Math.PI/2;g.add(f);
+    for(let i=0;i<5;i++) g.add(bx(0.018,0.016,0.01,mDark,-0.1+i*0.055,-0.025,0.09));
+    g.position.set(0.02,-0.47,-0.12);
+    return g;
+  }
+
+  function buildCase(){
+    const g=new THREE.Group();
+    const CW=0.52,CH=1.08,CD=0.86,T=0.02;
+    // White shell exterior + dark interior backplate (PC interiors are black so parts pop through the glass)
+    g.add(bx(CW,CH,T,mCase,0,0,-CD/2));  // back (exterior face)
+    g.add(bx(CW*0.97,CH*0.97,0.01,mDark,0,0,-CD/2+T));  // back interior liner
+    g.add(bx(CW,T,CD,mCase,0,-CH/2,0));  // bottom
+    g.add(bx(CW,T,CD,mCase,0,CH/2,0));   // top
+    g.add(bx(T,CH,CD,mDark,CW/2,0,0));   // right solid — dark interior face
+    // Front dark mesh
+    g.add(bx(CW,CH,T,mCaseMesh,0,0,CD/2));
+    for(let i=0;i<8;i++) g.add(bx(CW*0.85,0.006,T*2,new THREE.MeshStandardMaterial({color:0x181818,metalness:0.8,roughness:0.1}),0,-CH/2+0.07+i*0.12,CD/2+0.005));
+    // Power btn RGB
+    const bm=rgb(0x00d4ff,2.5);g.add(bx(0.024,0.024,0.006,bm,CW*0.22,CH*0.4,CD/2+0.006));
+    allRGB.push({mat:bm,pl:null,offset:3.1});
+    // Glass panel (left, facing camera)
+    const gm=bx(T*0.4,CH-0.04,CD-0.04,mGlass,-CW/2,0,0);gm.renderOrder=999;g.add(gm);
+    // Glass frame (thin silver border only, not a solid slab — must not block the glass)
+    const fx=-CW/2+T*0.3;
+    g.add(bx(T*0.6,CH,0.02,mAlum,fx,0,-CD/2+0.01));
+    g.add(bx(T*0.6,CH,0.02,mAlum,fx,0,CD/2-0.01));
+    g.add(bx(T*0.6,0.02,CD,mAlum,fx,CH/2-0.01,0));
+    g.add(bx(T*0.6,0.02,CD,mAlum,fx,-CH/2+0.01,0));
+    // Feet
+    [[-CW/2+0.06,-CD/2+0.06],[CW/2-0.06,-CD/2+0.06],[-CW/2+0.06,CD/2-0.06],[CW/2-0.06,CD/2-0.06]].forEach(([x,z])=>{
+      g.add(bx(0.04,0.025,0.04,mDark,x,-CH/2-0.012,z));
+    });
+    // Bottom RGB strip (bright!)
+    const sm=rgb(0xff00ff,4);
+    g.add(bx(0.006,CW*0.75,0.01,sm,0.1,-CH/2+T+0.012,0.05));
+    const sl=new THREE.PointLight(0xff00ff,2.0,1.0);sl.position.set(0,-0.5,0);g.add(sl);
+    allRGB.push({mat:sm,pl:sl,offset:1.8});
+    // Front intake fans (3)
+    for(let i=0;i<3;i++){const f=makeFan(0.14,0x0066ff);f.position.set(0,-0.26+i*0.26,CD/2-0.02);g.add(f);}
+    return g;
+  }
+
+  // Build all groups, start invisible
+  meshes.motherboard=buildMotherboard();scene.add(meshes.motherboard);meshes.motherboard.visible=false;
+  meshes.gpu=buildGPU();scene.add(meshes.gpu);meshes.gpu.visible=false;
+  meshes.cooling=buildCooling();scene.add(meshes.cooling);meshes.cooling.visible=false;
+  meshes.ram=buildRAM();scene.add(meshes.ram);meshes.ram.visible=false;
+  meshes.storage=buildStorage();scene.add(meshes.storage);meshes.storage.visible=false;
+  meshes.psu=buildPSU();scene.add(meshes.psu);meshes.psu.visible=false;
+  meshes.case=buildCase();scene.add(meshes.case);meshes.case.visible=false;
+
+  function animIn(grp){
+    grp.visible=true;grp.scale.setScalar(0.01);
+    const t0=Date.now();
+    (function s(){const p=Math.min((Date.now()-t0)/420,1);grp.scale.setScalar(1-Math.pow(1-p,3));if(p<1)requestAnimationFrame(s);})();
+  }
+  function animOut(grp){
+    if(!grp.visible)return;
+    const t0=Date.now();
+    (function s(){const p=Math.min((Date.now()-t0)/200,1);grp.scale.setScalar(1-p);if(p<1)requestAnimationFrame(s);else grp.visible=false;})();
+  }
+
+  window.update3D=function(){
+    const show=(cat,mesh)=>{const w=!!picks[cat];if(w&&!mesh.visible)animIn(mesh);else if(!w&&mesh.visible)animOut(mesh);};
+    show('gpu',meshes.gpu);show('psu',meshes.psu);show('storage',meshes.storage);
+    const wantMB=!!(picks.cpu||picks.ram||picks.storage);
+    if(wantMB&&!meshes.motherboard.visible)animIn(meshes.motherboard);
+    else if(!wantMB&&meshes.motherboard.visible)animOut(meshes.motherboard);
+    show('ram',meshes.ram);show('cooling',meshes.cooling);show('case',meshes.case);
+  };
+
+  // ── ANIMATION LOOP ──
+  let t=0;
+  function animate(){
+    requestAnimationFrame(animate);t+=0.016;
+    const hue=(t*0.06)%1;
+    // Spin fans
+    allSpinners.forEach((sg,i)=>{sg.rotation.z+=0.14+i*0.003;});
+    // RGB cycle
+    allRGB.forEach(item=>{
+      const h=(hue+item.offset*0.09)%1;
+      CC.setHSL(h,1,0.55);
+      item.mat.color.copy(CC);item.mat.emissive.copy(CC);
+      if(item.pl)item.pl.color.copy(CC);
+    });
+    // Interior lights
+    rgbPts.forEach(({l,o})=>{CC.setHSL((hue+o/(Math.PI*2))%1,1,0.5);l.color.copy(CC);l.intensity=3+Math.sin(t*2+o);});
+
+    controls.update();
+    renderer.render(scene,camera);
+  }
+  animate();
+
+  window.addEventListener('resize',()=>{
+    const {w,h}=sz();
+    camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);
+  });
+})();
+
+renderAll();
+</script>
+</body>
+</html>
