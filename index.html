@@ -89,7 +89,7 @@ html,body{height:100%;font-family:'Inter',-apple-system,sans-serif;background:va
 .comp-list::-webkit-scrollbar{width:5px}
 .comp-list::-webkit-scrollbar-track{background:transparent}
 .comp-list::-webkit-scrollbar-thumb{background:rgba(20,20,18,0.16);border-radius:3px}
-.comp-card{border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;background:var(--surface);transition:all .15s;position:relative;overflow:hidden;box-shadow:var(--shadow-sm)}
+.comp-card{border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;background:var(--surface);transition:all .15s;position:relative;box-shadow:var(--shadow-sm)}
 .comp-card:hover{border-color:var(--border-hover);transform:translateY(-1px);box-shadow:var(--shadow-md)}
 .comp-card.pk{border-color:var(--accent);background:var(--accent-glow);box-shadow:0 0 0 1px var(--accent),var(--shadow-md)}
 .comp-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:10px}
@@ -243,8 +243,9 @@ html,body{height:100%;font-family:'Inter',-apple-system,sans-serif;background:va
     </div>
     <div class="parts-done" style="margin-top:10px">
       <div class="parts-pips" id="parts-pips"></div>
-      <span id="parts-label">0 of 7 components selected</span>
+      <span id="parts-label">0 of 8 components selected</span>
     </div>
+    <div id="compat-strip" style="display:none;margin-top:12px;padding-top:4px;border-top:1px solid var(--border)"></div>
   </div>
 </div>
 
@@ -283,13 +284,14 @@ html,body{height:100%;font-family:'Inter',-apple-system,sans-serif;background:va
 //  DATA
 // ============================================================
 const CATS=[
-  {id:'gpu',label:'GPU'},
-  {id:'cpu',label:'CPU'},
-  {id:'ram',label:'RAM'},
+  {id:'gpu',   label:'GPU'},
+  {id:'cpu',   label:'CPU'},
+  {id:'mobo',  label:'Motherboard'},
+  {id:'ram',   label:'RAM'},
   {id:'storage',label:'Storage'},
   {id:'cooling',label:'Cooling'},
-  {id:'case',label:'Case ← last'},
-  {id:'psu',label:'PSU'},
+  {id:'case',  label:'Case'},
+  {id:'psu',   label:'PSU'},
 ];
 // Real product photos sourced from Wikimedia Commons (CC-licensed, direct-linkable via Special:FilePath)
 function wimg(file,w=500){return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=${w}`;}
@@ -306,53 +308,60 @@ const IMG={
 };
 const COMPS={
   gpu:[
-    {id:'rtx4090',name:'NVIDIA GeForce RTX 4090',brand:'ASUS ROG Strix 24G OC',price:1599,score:100,tier:'Titan',specs:['24GB GDDR6X','450W TDP','DLSS 3.5','Ada Lovelace'],watts:450,img:IMG.gpuNV},
-    {id:'rtx4080s',name:'NVIDIA RTX 4080 Super',brand:'MSI Gaming X Trio',price:999,score:82,tier:'Ultra',specs:['16GB GDDR6X','320W TDP','DLSS 3.5'],watts:320,img:IMG.gpuNV},
-    {id:'rx7900xtx',name:'AMD Radeon RX 7900 XTX',brand:'Sapphire Nitro+ OC',price:899,score:78,tier:'Ultra',specs:['24GB GDDR6','355W TDP','FSR 3.0'],watts:355,img:IMG.gpuAMD},
-    {id:'rtx4070tis',name:'NVIDIA RTX 4070 Ti Super',brand:'Gigabyte Aorus Master',price:799,score:72,tier:'High',specs:['16GB GDDR6X','285W TDP','DLSS 3.5'],watts:285,img:IMG.gpuNV},
-    {id:'rtx4070s',name:'NVIDIA RTX 4070 Super',brand:'EVGA XC3 Ultra',price:599,score:62,tier:'High',specs:['12GB GDDR6X','220W TDP','DLSS 3.5'],watts:220,img:IMG.gpuNV},
+    {id:'rtx4090', name:'NVIDIA GeForce RTX 4090',   brand:'ASUS ROG Strix 24G OC',        price:1599,score:100,tier:'Titan',specs:['24GB GDDR6X','450W TDP','DLSS 3.5','Ada Lovelace'],  watts:450,length_mm:357,img:IMG.gpuNV},
+    {id:'rtx4080s',name:'NVIDIA RTX 4080 Super',      brand:'MSI Gaming X Trio',             price:999, score:82, tier:'Ultra',specs:['16GB GDDR6X','320W TDP','DLSS 3.5'],               watts:320,length_mm:337,img:IMG.gpuNV},
+    {id:'rx7900xtx',name:'AMD Radeon RX 7900 XTX',   brand:'Sapphire Nitro+ OC',            price:899, score:78, tier:'Ultra',specs:['24GB GDDR6','355W TDP','FSR 3.0'],                 watts:355,length_mm:322,img:IMG.gpuAMD},
+    {id:'rtx4070tis',name:'NVIDIA RTX 4070 Ti Super', brand:'Gigabyte Aorus Master',         price:799, score:72, tier:'High', specs:['16GB GDDR6X','285W TDP','DLSS 3.5'],               watts:285,length_mm:338,img:IMG.gpuNV},
+    {id:'rtx4070s',name:'NVIDIA RTX 4070 Super',      brand:'EVGA XC3 Ultra',                price:599, score:62, tier:'High', specs:['12GB GDDR6X','220W TDP','DLSS 3.5'],               watts:220,length_mm:285,img:IMG.gpuNV},
   ],
   cpu:[
-    {id:'r9-7950x3d',name:'AMD Ryzen 9 7950X3D',brand:'AM5 · 16-core',price:699,score:10,tier:'Elite',specs:['16C / 32T','5.7GHz Boost','128MB 3D V-Cache'],watts:120,img:IMG.cpuAMD},
-    {id:'i9-14900k',name:'Intel Core i9-14900K',brand:'LGA1700 · 24-core',price:589,score:10,tier:'Elite',specs:['24C / 32T','6.0GHz Boost','Intel Thread Director'],watts:125,img:IMG.cpuIntel},
-    {id:'r7-7800x3d',name:'AMD Ryzen 7 7800X3D',brand:'AM5 · 8-core',price:449,score:9,tier:'High',specs:['8C / 16T','5.0GHz Boost','3D V-Cache Gaming'],watts:120,img:IMG.cpuAMD},
-    {id:'i7-14700k',name:'Intel Core i7-14700K',brand:'LGA1700 · 20-core',price:409,score:8,tier:'High',specs:['20C / 28T','5.6GHz Boost','Intel UHD 770'],watts:125,img:IMG.cpuIntel},
-    {id:'i5-14600k',name:'Intel Core i5-14600K',brand:'LGA1700 · 14-core',price:319,score:7,tier:'Mid',specs:['14C / 20T','5.3GHz Boost','Intel UHD 770'],watts:125,img:IMG.cpuIntel},
+    {id:'r9-7950x3d',name:'AMD Ryzen 9 7950X3D',  brand:'AM5 · 16-core',   price:699,score:10,tier:'Elite',specs:['16C / 32T','5.7GHz Boost','128MB 3D V-Cache'],watts:120,socket:'AM5',   img:IMG.cpuAMD},
+    {id:'i9-14900k', name:'Intel Core i9-14900K', brand:'LGA1700 · 24-core',price:589,score:10,tier:'Elite',specs:['24C / 32T','6.0GHz Boost','Intel Thread Director'],watts:125,socket:'LGA1700',img:IMG.cpuIntel},
+    {id:'r7-7800x3d',name:'AMD Ryzen 7 7800X3D',  brand:'AM5 · 8-core',    price:449,score:9, tier:'High', specs:['8C / 16T','5.0GHz Boost','3D V-Cache Gaming'],  watts:120,socket:'AM5',   img:IMG.cpuAMD},
+    {id:'i7-14700k', name:'Intel Core i7-14700K', brand:'LGA1700 · 20-core',price:409,score:8, tier:'High', specs:['20C / 28T','5.6GHz Boost','Intel UHD 770'],     watts:125,socket:'LGA1700',img:IMG.cpuIntel},
+    {id:'i5-14600k', name:'Intel Core i5-14600K', brand:'LGA1700 · 14-core',price:319,score:7, tier:'Mid',  specs:['14C / 20T','5.3GHz Boost','Intel UHD 770'],     watts:125,socket:'LGA1700',img:IMG.cpuIntel},
+  ],
+  mobo:[
+    {id:'x670e-hero', name:'ROG Crosshair X670E Hero',   brand:'ASUS · AM5 DDR5 E-ATX', price:499,score:3,tier:'Titan',specs:['AM5 Socket','DDR5 Only','E-ATX','PCIe 5.0'],       socket:'AM5',   ramTypes:['DDR5'],         formFactor:'E-ATX',img:IMG.cpuAMD},
+    {id:'x670e-ace',  name:'MEG X670E ACE',               brand:'MSI · AM5 DDR5 ATX',   price:399,score:2,tier:'Ultra',specs:['AM5 Socket','DDR5 Only','ATX','PCIe 5.0'],         socket:'AM5',   ramTypes:['DDR5'],         formFactor:'ATX',  img:IMG.cpuAMD},
+    {id:'b650-aorus', name:'B650 AORUS Elite AX',         brand:'Gigabyte · AM5 DDR5',  price:199,score:1,tier:'High', specs:['AM5 Socket','DDR5 Only','ATX','PCIe 4.0'],         socket:'AM5',   ramTypes:['DDR5'],         formFactor:'ATX',  img:IMG.cpuAMD},
+    {id:'z790-apex',  name:'ROG Maximus Z790 Apex',       brand:'ASUS · LGA1700 DDR5',  price:449,score:2,tier:'Ultra',specs:['LGA1700','DDR5 Only','ATX','PCIe 5.0'],            socket:'LGA1700',ramTypes:['DDR5'],         formFactor:'ATX',  img:IMG.cpuIntel},
+    {id:'z790-tomahawk',name:'MAG Z790 Tomahawk WiFi',    brand:'MSI · LGA1700 DDR4/5', price:229,score:1,tier:'High', specs:['LGA1700','DDR4 & DDR5','ATX','PCIe 5.0'],         socket:'LGA1700',ramTypes:['DDR4','DDR5'], formFactor:'ATX',  img:IMG.cpuIntel},
   ],
   ram:[
-    {id:'64ddr5',name:'64GB DDR5-6000 CL30',brand:'G.Skill Trident Z5 RGB',price:189,score:3,tier:'Ultra',specs:['64GB Dual Channel','DDR5-6000','CL30-36-36-96','XMP 3.0'],img:IMG.ram},
-    {id:'32ddr5',name:'32GB DDR5-6000 CL30',brand:'Kingston Fury Beast RGB',price:119,score:2,tier:'High',specs:['32GB Dual Channel','DDR5-6000','CL30','XMP 3.0'],img:IMG.ram},
-    {id:'32ddr4',name:'32GB DDR4-3600 CL16',brand:'Corsair Vengeance RGB Pro',price:89,score:1,tier:'Mid',specs:['32GB Dual Channel','DDR4-3600','CL16','XMP 2.0'],img:IMG.ram},
-    {id:'16ddr5',name:'16GB DDR5-6000',brand:'Crucial Pro',price:79,score:0,tier:'Mid',specs:['16GB Dual Channel','DDR5-6000','CL30'],img:IMG.ram},
+    {id:'64ddr5',name:'64GB DDR5-6000 CL30',   brand:'G.Skill Trident Z5 RGB',      price:189,score:3,tier:'Ultra',specs:['64GB Dual Channel','DDR5-6000','CL30-36-36-96','XMP 3.0'],type:'DDR5',img:IMG.ram},
+    {id:'32ddr5',name:'32GB DDR5-6000 CL30',   brand:'Kingston Fury Beast RGB',     price:119,score:2,tier:'High', specs:['32GB Dual Channel','DDR5-6000','CL30','XMP 3.0'],        type:'DDR5',img:IMG.ram},
+    {id:'32ddr4',name:'32GB DDR4-3600 CL16',   brand:'Corsair Vengeance RGB Pro',   price:89, score:1,tier:'Mid',  specs:['32GB Dual Channel','DDR4-3600','CL16','XMP 2.0'],        type:'DDR4',img:IMG.ram},
+    {id:'16ddr5',name:'16GB DDR5-6000',         brand:'Crucial Pro',                price:79, score:0,tier:'Mid',  specs:['16GB Dual Channel','DDR5-6000','CL30'],                  type:'DDR5',img:IMG.ram},
   ],
   storage:[
-    {id:'4tb-g4',name:'4TB PCIe Gen4 NVMe SSD',brand:'Samsung 990 Pro',price:299,score:2,tier:'Ultra',specs:['4TB','7,450 MB/s Read','PCIe 4.0 x4'],img:IMG.ssd},
-    {id:'2tb-g4',name:'2TB PCIe Gen4 NVMe SSD',brand:'WD Black SN850X',price:179,score:1,tier:'High',specs:['2TB','7,300 MB/s Read','PCIe 4.0 x4'],img:IMG.ssd},
-    {id:'2tb-g3',name:'2TB PCIe Gen3 NVMe SSD',brand:'Crucial P3 Plus',price:129,score:0,tier:'Mid',specs:['2TB','5,000 MB/s Read','PCIe 3.0 x4'],img:IMG.ssd},
-    {id:'1tb-g4',name:'1TB PCIe Gen4 NVMe SSD',brand:'Samsung 980 Pro',price:109,score:0,tier:'Mid',specs:['1TB','7,000 MB/s Read','PCIe 4.0 x4'],img:IMG.ssd},
+    {id:'4tb-g4',name:'4TB PCIe Gen4 NVMe SSD', brand:'Samsung 990 Pro',  price:299,score:2,tier:'Ultra',specs:['4TB','7,450 MB/s Read','PCIe 4.0 x4'],img:IMG.ssd},
+    {id:'2tb-g4',name:'2TB PCIe Gen4 NVMe SSD', brand:'WD Black SN850X',  price:179,score:1,tier:'High', specs:['2TB','7,300 MB/s Read','PCIe 4.0 x4'],img:IMG.ssd},
+    {id:'2tb-g3',name:'2TB PCIe Gen3 NVMe SSD', brand:'Crucial P3 Plus',  price:129,score:0,tier:'Mid',  specs:['2TB','5,000 MB/s Read','PCIe 3.0 x4'],img:IMG.ssd},
+    {id:'1tb-g4',name:'1TB PCIe Gen4 NVMe SSD', brand:'Samsung 980 Pro',  price:109,score:0,tier:'Mid',  specs:['1TB','7,000 MB/s Read','PCIe 4.0 x4'],img:IMG.ssd},
   ],
   cooling:[
-    {id:'360aio',name:'360mm AIO Liquid Cooler',brand:'NZXT Kraken Elite 360',price:249,score:2,tier:'Ultra',specs:['360mm Radiator','LCD Display Head','6× 120mm Fans'],img:IMG.cooling},
-    {id:'280aio',name:'280mm AIO Liquid Cooler',brand:'Corsair H115i Elite Capellix',price:149,score:1,tier:'High',specs:['280mm Radiator','RGB Pump Head','2× 140mm LL Fans'],img:IMG.cooling},
-    {id:'240aio',name:'240mm AIO Liquid Cooler',brand:'Arctic Liquid Freezer III',price:89,score:0,tier:'Mid',specs:['240mm Radiator','VRM Fan','2× 120mm Fans'],img:IMG.cooling},
-    {id:'air',name:'Premium Air Tower',brand:'Noctua NH-D15 chromax.black',price:99,score:0,tier:'Mid',specs:['Dual Tower Design','6 Copper Heatpipes','2× NF-A15 Fans'],img:IMG.cooling},
+    {id:'360aio',name:'360mm AIO Liquid Cooler', brand:'NZXT Kraken Elite 360',          price:249,score:2,tier:'Ultra',specs:['360mm Radiator','LCD Display Head','6× 120mm Fans'], sockets:['AM5','LGA1700'],rad_mm:360,  height_mm:null,img:IMG.cooling},
+    {id:'280aio',name:'280mm AIO Liquid Cooler', brand:'Corsair H115i Elite Capellix',   price:149,score:1,tier:'High', specs:['280mm Radiator','RGB Pump Head','2× 140mm LL Fans'],  sockets:['AM5','LGA1700'],rad_mm:280,  height_mm:null,img:IMG.cooling},
+    {id:'240aio',name:'240mm AIO Liquid Cooler', brand:'Arctic Liquid Freezer III',      price:89, score:0,tier:'Mid',  specs:['240mm Radiator','VRM Fan','2× 120mm Fans'],           sockets:['AM5','LGA1700'],rad_mm:240,  height_mm:null,img:IMG.cooling},
+    {id:'air',   name:'Premium Air Tower',        brand:'Noctua NH-D15 chromax.black',   price:99, score:0,tier:'Mid',  specs:['Dual Tower Design','6 Copper Heatpipes','2× NF-A15 Fans'],sockets:['AM5','LGA1700'],rad_mm:null,height_mm:168, img:IMG.cooling},
   ],
   case:[
-    {id:'ft',name:'Full Tower Premium',brand:'Lian Li O11 Dynamic EVO XL',price:199,score:2,tier:'Ultra',specs:['E-ATX / ATX','3× Tempered Glass','USB-C 3.2 Gen2'],img:IMG.case},
-    {id:'mt-p',name:'Mid Tower — Premium',brand:'NZXT H7 Flow RGB',price:149,score:1,tier:'High',specs:['ATX','Perforated Mesh Front','Tempered Glass Side'],img:IMG.case},
-    {id:'mt-s',name:'Mid Tower — Standard',brand:'Fractal Design Pop Air',price:99,score:0,tier:'Mid',specs:['ATX','Mesh Front Panel','USB-C Front'],img:IMG.case},
+    {id:'ft',  name:'Full Tower Premium',    brand:'Lian Li O11 Dynamic EVO XL', price:199,score:2,tier:'Ultra',specs:['E-ATX / ATX','3× Tempered Glass','USB-C 3.2 Gen2'],formFactors:['E-ATX','ATX','mATX'],max_gpu_mm:420,max_cooler_mm:167,max_rad_mm:360,img:IMG.case},
+    {id:'mt-p',name:'Mid Tower — Premium',   brand:'NZXT H7 Flow RGB',           price:149,score:1,tier:'High', specs:['ATX','Perforated Mesh Front','Tempered Glass Side'],    formFactors:['ATX','mATX'],         max_gpu_mm:400,max_cooler_mm:165,max_rad_mm:360,img:IMG.case},
+    {id:'mt-s',name:'Mid Tower — Standard',  brand:'Fractal Design Pop Air',     price:99, score:0,tier:'Mid',  specs:['ATX','Mesh Front Panel','USB-C Front'],                  formFactors:['ATX','mATX'],         max_gpu_mm:360,max_cooler_mm:165,max_rad_mm:280,img:IMG.case},
   ],
   psu:[
-    {id:'1000w',name:'1000W 80+ Titanium',brand:'Seasonic Prime TX-1000',price:229,score:2,tier:'Ultra',specs:['1000W Output','80 Plus Titanium','Fully Modular'],watts:1000,img:IMG.psu},
-    {id:'850w',name:'850W 80+ Gold',brand:'Corsair RM850x SHIFT',price:139,score:1,tier:'High',specs:['850W Output','80 Plus Gold','Fully Modular'],watts:850,img:IMG.psu},
-    {id:'750w',name:'750W 80+ Gold',brand:'EVGA SuperNOVA 750 G6',price:109,score:0,tier:'Mid',specs:['750W Output','80 Plus Gold','Fully Modular'],watts:750,img:IMG.psu},
-    {id:'650w',name:'650W 80+ Bronze',brand:'EVGA 650 B7',price:79,score:0,tier:'Mid',specs:['650W Output','80 Plus Bronze','Semi-Modular'],watts:650,img:IMG.psu},
+    {id:'1000w',name:'1000W 80+ Titanium',brand:'Seasonic Prime TX-1000',   price:229,score:2,tier:'Ultra',specs:['1000W Output','80 Plus Titanium','Fully Modular'],watts:1000,img:IMG.psu},
+    {id:'850w', name:'850W 80+ Gold',     brand:'Corsair RM850x SHIFT',     price:139,score:1,tier:'High', specs:['850W Output','80 Plus Gold','Fully Modular'],   watts:850, img:IMG.psu},
+    {id:'750w', name:'750W 80+ Gold',     brand:'EVGA SuperNOVA 750 G6',   price:109,score:0,tier:'Mid',  specs:['750W Output','80 Plus Gold','Fully Modular'],   watts:750, img:IMG.psu},
+    {id:'650w', name:'650W 80+ Bronze',   brand:'EVGA 650 B7',              price:79, score:0,tier:'Mid',  specs:['650W Output','80 Plus Bronze','Semi-Modular'],  watts:650, img:IMG.psu},
   ],
 };
 const PRESETS={
-  mid:{gpu:'rtx4070s',cpu:'i5-14600k',ram:'32ddr4',storage:'2tb-g3',cooling:'240aio',case:'mt-s',psu:'650w'},
-  high:{gpu:'rtx4070tis',cpu:'r7-7800x3d',ram:'32ddr5',storage:'2tb-g4',cooling:'280aio',case:'mt-p',psu:'850w'},
-  titan:{gpu:'rtx4090',cpu:'r9-7950x3d',ram:'64ddr5',storage:'4tb-g4',cooling:'360aio',case:'ft',psu:'1000w'},
+  mid:  {gpu:'rtx4070s',  cpu:'i5-14600k',  mobo:'z790-tomahawk',ram:'32ddr4',storage:'2tb-g3',cooling:'240aio',case:'mt-s',psu:'650w'},
+  high: {gpu:'rtx4070tis',cpu:'r7-7800x3d', mobo:'b650-aorus',   ram:'32ddr5',storage:'2tb-g4',cooling:'280aio',case:'mt-p',psu:'850w'},
+  titan:{gpu:'rtx4090',   cpu:'r9-7950x3d', mobo:'x670e-hero',   ram:'64ddr5',storage:'4tb-g4',cooling:'360aio',case:'ft', psu:'1000w'},
 };
 const GAMES=[
   {name:'Cyberpunk 2077',genre:'Open World RPG · Path Tracing',fps1080:[58,88,122,158],fps1440:[38,60,86,116],fps4k:[22,35,52,72],c1:'#1a0533',c2:'#7c3aed',c3:'#22d3ee'},
@@ -390,6 +399,39 @@ function fpsStyle(fps){
   if(fps>=30)return{color:'#9a6b15',label:'Playable'};
   return{color:'#c4321f',label:'Choppy'};
 }
+function checkCompat(){
+  const issues=[];
+  const {cpu,mobo,ram,gpu,cooling,case:cas,psu}=picks;
+  if(cpu&&mobo&&cpu.socket!==mobo.socket)
+    issues.push({cat:['cpu','mobo'],sev:'error',msg:`CPU socket ${cpu.socket} ≠ motherboard socket ${mobo.socket}`});
+  if(mobo&&ram&&!mobo.ramTypes.includes(ram.type))
+    issues.push({cat:['mobo','ram'],sev:'error',msg:`Motherboard only supports ${mobo.ramTypes.join('/')} — RAM is ${ram.type}`});
+  if(mobo&&cas&&!cas.formFactors.includes(mobo.formFactor))
+    issues.push({cat:['mobo','case'],sev:'error',msg:`${mobo.formFactor} motherboard doesn't fit in this case (supports ${cas.formFactors.join('/')})`});
+  if(cpu&&cooling&&!cooling.sockets.includes(cpu.socket))
+    issues.push({cat:['cpu','cooling'],sev:'error',msg:`Cooler doesn't support ${cpu.socket} socket`});
+  if(gpu&&cas){
+    if(gpu.length_mm>cas.max_gpu_mm)
+      issues.push({cat:['gpu','case'],sev:'error',msg:`GPU is ${gpu.length_mm}mm — case max is ${cas.max_gpu_mm}mm (won't fit)`});
+  }
+  if(cooling&&cas){
+    if(cooling.rad_mm&&cooling.rad_mm>cas.max_rad_mm)
+      issues.push({cat:['cooling','case'],sev:'error',msg:`${cooling.rad_mm}mm radiator won't fit — case max is ${cas.max_rad_mm}mm`});
+    if(cooling.height_mm&&cooling.height_mm>cas.max_cooler_mm)
+      issues.push({cat:['cooling','case'],sev:'error',msg:`Cooler is ${cooling.height_mm}mm tall — case clears ${cas.max_cooler_mm}mm max`});
+  }
+  if(gpu&&cpu&&psu){
+    const needed=gpu.watts+cpu.watts+100;
+    if(psu.watts<needed)
+      issues.push({cat:['psu'],sev:'error',msg:`PSU is ${psu.watts}W — system needs ~${needed}W (GPU+CPU+100W overhead)`});
+    else if(psu.watts<needed*1.2)
+      issues.push({cat:['psu'],sev:'warn',msg:`PSU headroom is tight: ${psu.watts}W for ~${needed}W system (recommend ${Math.ceil(needed*1.2/50)*50}W+)`});
+  }
+  return issues;
+}
+function compatWarningsFor(cat){
+  return checkCompat().filter(i=>i.cat.includes(cat));
+}
 function loadPreset(k){const p=PRESETS[k];Object.keys(p).forEach(cat=>{picks[cat]=COMPS[cat].find(c=>c.id===p[cat])});renderAll();update3D();}
 function clearBuild(){picks={};renderAll();update3D();}
 function setCat(c){curCat=c;renderTabs();renderList();}
@@ -406,17 +448,28 @@ function renderTabs(){
     </button>`).join('');
 }
 function renderList(){
+  const savedPick=picks[curCat];
   document.getElementById('comp-list').innerHTML=COMPS[curCat].map((c,i)=>{
-    const pk=picks[curCat]&&picks[curCat].id===c.id;
-    return`<div class="comp-card ${pk?'pk':''}" onclick="pick('${curCat}','${c.id}')" style="animation-delay:${i*0.04}s">
+    const pk=savedPick&&savedPick.id===c.id;
+    // Simulate picking this card to preview its compat issues
+    picks[curCat]=c;
+    const issues=compatWarningsFor(curCat);
+    picks[curCat]=savedPick;
+    const hasError=issues.some(x=>x.sev==='error');
+    const hasWarn=issues.some(x=>x.sev==='warn');
+    const incompatBorder=hasError?'border-color:#c4321f;':'';
+    const incompatBg=hasError?'background:rgba(196,50,31,0.04);':'';
+    const warnHtml=issues.length&&!pk?`<div style="margin-top:7px;font-size:10px;color:${hasError?'#c4321f':'#9a6b15'};font-weight:600;line-height:1.4">${issues.map(x=>`⚠ ${x.msg}`).join('<br>')}</div>`:'';
+    return`<div class="comp-card ${pk?'pk':''}" onclick="pick('${curCat}','${c.id}')" style="animation-delay:${i*0.04}s;${pk?'':incompatBorder+incompatBg}">
       <div style="display:flex;gap:12px">
         <img src="${c.img}" alt="${c.name}" loading="lazy" style="width:88px;height:72px;object-fit:contain;object-position:center;border-radius:8px;background:radial-gradient(circle,#dcdce2,#c4c4cc);border:1px solid var(--border);flex-shrink:0;padding:4px;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.04)">
         <div style="flex:1;min-width:0">
           <div class="comp-top" style="margin-bottom:6px">
-            <div><div class="comp-name">${c.name}</div><div class="comp-brand">${c.brand}</div><div style="margin-top:5px"><span class="tier-badge t${c.tier}">${c.tier}</span></div></div>
-            <div class="comp-right"><div class="comp-price">$${c.price.toLocaleString()}</div>${pk?'<div style="font-size:10px;color:var(--accent-light);margin-top:3px;font-weight:600">✓ Selected</div>':''}</div>
+            <div><div class="comp-name" style="${hasError&&!pk?'opacity:.7':''}">${c.name}</div><div class="comp-brand">${c.brand}</div><div style="margin-top:5px"><span class="tier-badge t${c.tier}">${c.tier}</span></div></div>
+            <div class="comp-right"><div class="comp-price">$${c.price.toLocaleString()}</div>${pk?'<div style="font-size:10px;color:var(--accent);margin-top:3px;font-weight:600">✓ Selected</div>':''}</div>
           </div>
           <div class="spec-pills">${c.specs.map(s=>`<span class="spec-pill ${pk?'sel-pill':''}">${s}</span>`).join('')}</div>
+          ${warnHtml}
         </div>
       </div>
     </div>`;
@@ -438,10 +491,27 @@ function renderAll(){
   const cnt=Object.keys(picks).length,total=Object.values(picks).reduce((s,p)=>s+p.price,0);
   document.getElementById('total-price').textContent=`$${total.toLocaleString()}`;
   document.getElementById('ov-price').textContent=`$${total.toLocaleString()}`;
-  const btn=document.getElementById('btn-bench');btn.disabled=cnt<7;
-  document.getElementById('parts-label').textContent=`${cnt} of 7 components selected`;
+  const issues=checkCompat();
+  const errors=issues.filter(x=>x.sev==='error');
+  const warns=issues.filter(x=>x.sev==='warn');
+  const btn=document.getElementById('btn-bench');btn.disabled=cnt<8||errors.length>0;
+  document.getElementById('parts-label').textContent=`${cnt} of 8 components selected`;
   const pips=document.getElementById('parts-pips');
   pips.innerHTML=CATS.map(c=>`<div class="parts-pip" style="background:${picks[c.id]?'var(--accent)':'var(--border-hover)'}"></div>`).join('');
+  // Compat status strip
+  const cs=document.getElementById('compat-strip');
+  if(cnt>=2&&issues.length>0){
+    cs.style.display='';
+    cs.innerHTML=issues.map(x=>`<div style="display:flex;align-items:flex-start;gap:7px;padding:7px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:11px;flex-shrink:0;margin-top:1px">${x.sev==='error'?'✗':'!'}</span>
+      <span style="font-size:11px;color:${x.sev==='error'?'#c4321f':'#9a6b15'};font-weight:500;line-height:1.45">${x.msg}</span>
+    </div>`).join('')+`<div style="font-size:10px;color:var(--text-dim);padding-top:6px">${errors.length} conflict${errors.length!==1?'s':''} · ${warns.length} warning${warns.length!==1?'s':''}</div>`;
+  } else if(cnt>=2){
+    cs.style.display='';
+    cs.innerHTML=`<div style="font-size:11px;color:var(--green);font-weight:600;display:flex;align-items:center;gap:6px">✓ All components compatible</div>`;
+  } else { cs.style.display='none'; }
+  if(cnt>=8&&errors.length===0){document.getElementById('compat-badge').style.display='';document.getElementById('hdr-order-btn').style.display='';}
+  else{document.getElementById('compat-badge').style.display='none';document.getElementById('hdr-order-btn').style.display='none';}
   if(cnt>0&&picks.gpu){
     const sc=getScore(),t=tierOf(sc);
     document.getElementById('ov-score').innerHTML=`<span style="color:${t.c};font-weight:600">${sc} <span style="font-size:10px;opacity:.6">/ 100</span></span>`;
