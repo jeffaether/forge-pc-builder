@@ -35,8 +35,37 @@ html,body{height:100%;font-family:'Inter',-apple-system,sans-serif;background:va
 .app{display:flex;flex-direction:column;height:100vh}
 .header{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:64px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);position:relative;z-index:10}
 .body{display:flex;flex:1;overflow:hidden}
-.viewer{flex:1;position:relative;overflow:hidden;background:linear-gradient(180deg,#eceae5 0%,#dcdad3 100%)}
-.panel{width:408px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--surface)}
+.build-summary{flex:1;overflow-y:auto;background:var(--bg);padding:24px 28px;display:flex;flex-direction:column;gap:0}
+.build-summary::-webkit-scrollbar{width:5px}
+.build-summary::-webkit-scrollbar-thumb{background:rgba(20,20,18,0.14);border-radius:3px}
+.panel{width:424px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--surface)}
+
+/* ── BUILD SUMMARY ── */
+.sum-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
+.sum-title{font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px}
+.sum-price{font-size:42px;font-weight:700;letter-spacing:-2px;color:var(--text);line-height:1}
+.sum-tier{margin-top:8px}
+.sum-parts{display:flex;flex-direction:column;gap:1px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--border);margin-bottom:16px}
+.sum-row{display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--surface);transition:background .15s}
+.sum-row:hover{background:var(--surface2)}
+.sum-row-empty{display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg);opacity:.6;cursor:pointer}
+.sum-row-empty:hover{opacity:1;background:var(--surface2)}
+.sum-cat{font-size:9.5px;font-weight:700;letter-spacing:.8px;color:var(--text-dim);width:80px;flex-shrink:0;text-transform:uppercase}
+.sum-img{width:44px;height:36px;object-fit:contain;border-radius:6px;background:radial-gradient(circle,#dcdce2,#c4c4cc);flex-shrink:0;padding:3px}
+.sum-name{font-size:12.5px;font-weight:600;color:var(--text);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sum-brand{font-size:11px;color:var(--text-dim);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sum-price-col{text-align:right;flex-shrink:0}
+.sum-part-price{font-size:13px;font-weight:700;color:var(--text)}
+.sum-buy-btn{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:4px 9px;border-radius:5px;background:#ff9900;color:#111;text-decoration:none;border:none;cursor:pointer;margin-top:4px;transition:opacity .15s;white-space:nowrap}
+.sum-buy-btn:hover{opacity:.85}
+.sum-empty-label{font-size:12px;color:var(--text-dim);flex:1}
+.sum-add-btn{font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;flex-shrink:0}
+.sum-compat{border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px;background:var(--surface)}
+.sum-buy-all{border-radius:12px;padding:20px;background:var(--text);color:var(--bg);display:flex;align-items:center;justify-content:space-between;gap:16px}
+.sum-buy-all-price{font-size:28px;font-weight:700;letter-spacing:-1px}
+.sum-buy-all-sub{font-size:11px;opacity:.55;margin-top:2px}
+.sum-buy-all-btn{padding:12px 22px;background:#ff9900;color:#111;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:opacity .15s}
+.sum-buy-all-btn:hover{opacity:.9}
 
 /* ── HEADER ── */
 .logo{display:flex;align-items:center;gap:12px}
@@ -182,41 +211,9 @@ html,body{height:100%;font-family:'Inter',-apple-system,sans-serif;background:va
 
 <div class="body">
 
-<!-- 3D VIEWER -->
-<div class="viewer">
-  <canvas id="c3d" style="width:100%;height:100%;display:block"></canvas>
-
-  <!-- Top Left: Build list -->
-  <div class="vov vov-tl glass-card" style="min-width:185px">
-    <div class="vov-label">BUILD</div>
-    <div id="ov-slots"></div>
-    <div class="rgb-strip" id="rgb-strip" style="display:none">
-      <div class="rgb-dot" style="background:#ff5a2e"></div>
-      <div class="rgb-dot" style="background:#06b6d4"></div>
-      <div class="rgb-dot" style="background:#ec4899"></div>
-    </div>
-  </div>
-
-  <!-- Top Right: Price + score -->
-  <div class="vov vov-tr glass-card" style="min-width:140px">
-    <div class="vov-label">BUILD COST</div>
-    <div class="vov-price" id="ov-price">$0</div>
-    <div class="vov-label" style="margin-top:10px">PERF SCORE</div>
-    <div class="vov-score" id="ov-score" style="color:var(--text-dim)">—</div>
-  </div>
-
-  <!-- Bottom: hint -->
-  <div class="vov vov-bc">
-    <div class="hint-pill">Drag to orbit · Scroll to zoom · Add parts to see them appear</div>
-  </div>
-
-  <!-- Bottom Left: trust strip -->
-  <div class="vov" style="bottom:16px;left:16px">
-    <div class="glass-card" style="padding:10px 14px">
-      <div style="font-size:11px;font-weight:600;color:var(--text)">Hand-built and tested in Taipei</div>
-      <div style="font-size:9.5px;color:var(--text-dim);margin-top:1px;letter-spacing:.3px">Sourced direct from component manufacturers · Tested before shipping</div>
-    </div>
-  </div>
+<!-- BUILD SUMMARY -->
+<div class="build-summary" id="build-summary">
+  <!-- rendered by renderBuildSummary() -->
 </div>
 
 <!-- RIGHT PANEL: Build phase -->
@@ -277,8 +274,6 @@ html,body{height:100%;font-family:'Inter',-apple-system,sans-serif;background:va
 </div><!-- /body -->
 </div><!-- /app -->
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
 // ============================================================
 //  DATA
@@ -306,56 +301,60 @@ const IMG={
   case:wimg('Lian Li O11 Dynamic XL 20190601.jpg'),
   psu:wimg('ATX Computer power supply unit.jpg'),
 };
+// Affiliate tag — replace with your Amazon Associates tag
+const AMZN_TAG='forgepc-20';
+function amzn(q){return`https://www.amazon.com/s?k=${encodeURIComponent(q)}&tag=${AMZN_TAG}`;}
+
 const COMPS={
   gpu:[
-    {id:'rtx4090', name:'NVIDIA GeForce RTX 4090',   brand:'ASUS ROG Strix 24G OC',        price:1599,score:100,tier:'Titan',specs:['24GB GDDR6X','450W TDP','DLSS 3.5','Ada Lovelace'],  watts:450,length_mm:357,img:IMG.gpuNV},
-    {id:'rtx4080s',name:'NVIDIA RTX 4080 Super',      brand:'MSI Gaming X Trio',             price:999, score:82, tier:'Ultra',specs:['16GB GDDR6X','320W TDP','DLSS 3.5'],               watts:320,length_mm:337,img:IMG.gpuNV},
-    {id:'rx7900xtx',name:'AMD Radeon RX 7900 XTX',   brand:'Sapphire Nitro+ OC',            price:899, score:78, tier:'Ultra',specs:['24GB GDDR6','355W TDP','FSR 3.0'],                 watts:355,length_mm:322,img:IMG.gpuAMD},
-    {id:'rtx4070tis',name:'NVIDIA RTX 4070 Ti Super', brand:'Gigabyte Aorus Master',         price:799, score:72, tier:'High', specs:['16GB GDDR6X','285W TDP','DLSS 3.5'],               watts:285,length_mm:338,img:IMG.gpuNV},
-    {id:'rtx4070s',name:'NVIDIA RTX 4070 Super',      brand:'EVGA XC3 Ultra',                price:599, score:62, tier:'High', specs:['12GB GDDR6X','220W TDP','DLSS 3.5'],               watts:220,length_mm:285,img:IMG.gpuNV},
+    {id:'rtx4090', name:'NVIDIA GeForce RTX 4090',   brand:'ASUS ROG Strix 24G OC',        price:1599,score:100,tier:'Titan',specs:['24GB GDDR6X','450W TDP','DLSS 3.5','Ada Lovelace'],  watts:450,length_mm:357,img:IMG.gpuNV,  buy:amzn('ASUS ROG Strix GeForce RTX 4090 24GB')},
+    {id:'rtx4080s',name:'NVIDIA RTX 4080 Super',      brand:'MSI Gaming X Trio',             price:999, score:82, tier:'Ultra',specs:['16GB GDDR6X','320W TDP','DLSS 3.5'],               watts:320,length_mm:337,img:IMG.gpuNV,  buy:amzn('MSI Gaming X Trio RTX 4080 Super 16GB')},
+    {id:'rx7900xtx',name:'AMD Radeon RX 7900 XTX',   brand:'Sapphire Nitro+ OC',            price:899, score:78, tier:'Ultra',specs:['24GB GDDR6','355W TDP','FSR 3.0'],                 watts:355,length_mm:322,img:IMG.gpuAMD, buy:amzn('Sapphire Nitro+ AMD Radeon RX 7900 XTX')},
+    {id:'rtx4070tis',name:'NVIDIA RTX 4070 Ti Super', brand:'Gigabyte Aorus Master',         price:799, score:72, tier:'High', specs:['16GB GDDR6X','285W TDP','DLSS 3.5'],               watts:285,length_mm:338,img:IMG.gpuNV,  buy:amzn('Gigabyte Aorus Master RTX 4070 Ti Super')},
+    {id:'rtx4070s',name:'NVIDIA RTX 4070 Super',      brand:'EVGA XC3 Ultra',                price:599, score:62, tier:'High', specs:['12GB GDDR6X','220W TDP','DLSS 3.5'],               watts:220,length_mm:285,img:IMG.gpuNV,  buy:amzn('RTX 4070 Super 12GB graphics card')},
   ],
   cpu:[
-    {id:'r9-7950x3d',name:'AMD Ryzen 9 7950X3D',  brand:'AM5 · 16-core',   price:699,score:10,tier:'Elite',specs:['16C / 32T','5.7GHz Boost','128MB 3D V-Cache'],watts:120,socket:'AM5',   img:IMG.cpuAMD},
-    {id:'i9-14900k', name:'Intel Core i9-14900K', brand:'LGA1700 · 24-core',price:589,score:10,tier:'Elite',specs:['24C / 32T','6.0GHz Boost','Intel Thread Director'],watts:125,socket:'LGA1700',img:IMG.cpuIntel},
-    {id:'r7-7800x3d',name:'AMD Ryzen 7 7800X3D',  brand:'AM5 · 8-core',    price:449,score:9, tier:'High', specs:['8C / 16T','5.0GHz Boost','3D V-Cache Gaming'],  watts:120,socket:'AM5',   img:IMG.cpuAMD},
-    {id:'i7-14700k', name:'Intel Core i7-14700K', brand:'LGA1700 · 20-core',price:409,score:8, tier:'High', specs:['20C / 28T','5.6GHz Boost','Intel UHD 770'],     watts:125,socket:'LGA1700',img:IMG.cpuIntel},
-    {id:'i5-14600k', name:'Intel Core i5-14600K', brand:'LGA1700 · 14-core',price:319,score:7, tier:'Mid',  specs:['14C / 20T','5.3GHz Boost','Intel UHD 770'],     watts:125,socket:'LGA1700',img:IMG.cpuIntel},
+    {id:'r9-7950x3d',name:'AMD Ryzen 9 7950X3D',  brand:'AM5 · 16-core',   price:699,score:10,tier:'Elite',specs:['16C / 32T','5.7GHz Boost','128MB 3D V-Cache'],watts:120,socket:'AM5',   img:IMG.cpuAMD,  buy:amzn('AMD Ryzen 9 7950X3D processor')},
+    {id:'i9-14900k', name:'Intel Core i9-14900K', brand:'LGA1700 · 24-core',price:589,score:10,tier:'Elite',specs:['24C / 32T','6.0GHz Boost','Intel Thread Director'],watts:125,socket:'LGA1700',img:IMG.cpuIntel,buy:amzn('Intel Core i9-14900K processor')},
+    {id:'r7-7800x3d',name:'AMD Ryzen 7 7800X3D',  brand:'AM5 · 8-core',    price:449,score:9, tier:'High', specs:['8C / 16T','5.0GHz Boost','3D V-Cache Gaming'],  watts:120,socket:'AM5',   img:IMG.cpuAMD,  buy:amzn('AMD Ryzen 7 7800X3D processor')},
+    {id:'i7-14700k', name:'Intel Core i7-14700K', brand:'LGA1700 · 20-core',price:409,score:8, tier:'High', specs:['20C / 28T','5.6GHz Boost','Intel UHD 770'],     watts:125,socket:'LGA1700',img:IMG.cpuIntel,buy:amzn('Intel Core i7-14700K processor')},
+    {id:'i5-14600k', name:'Intel Core i5-14600K', brand:'LGA1700 · 14-core',price:319,score:7, tier:'Mid',  specs:['14C / 20T','5.3GHz Boost','Intel UHD 770'],     watts:125,socket:'LGA1700',img:IMG.cpuIntel,buy:amzn('Intel Core i5-14600K processor')},
   ],
   mobo:[
-    {id:'x670e-hero', name:'ROG Crosshair X670E Hero',   brand:'ASUS · AM5 DDR5 E-ATX', price:499,score:3,tier:'Titan',specs:['AM5 Socket','DDR5 Only','E-ATX','PCIe 5.0'],       socket:'AM5',   ramTypes:['DDR5'],         formFactor:'E-ATX',img:IMG.cpuAMD},
-    {id:'x670e-ace',  name:'MEG X670E ACE',               brand:'MSI · AM5 DDR5 ATX',   price:399,score:2,tier:'Ultra',specs:['AM5 Socket','DDR5 Only','ATX','PCIe 5.0'],         socket:'AM5',   ramTypes:['DDR5'],         formFactor:'ATX',  img:IMG.cpuAMD},
-    {id:'b650-aorus', name:'B650 AORUS Elite AX',         brand:'Gigabyte · AM5 DDR5',  price:199,score:1,tier:'High', specs:['AM5 Socket','DDR5 Only','ATX','PCIe 4.0'],         socket:'AM5',   ramTypes:['DDR5'],         formFactor:'ATX',  img:IMG.cpuAMD},
-    {id:'z790-apex',  name:'ROG Maximus Z790 Apex',       brand:'ASUS · LGA1700 DDR5',  price:449,score:2,tier:'Ultra',specs:['LGA1700','DDR5 Only','ATX','PCIe 5.0'],            socket:'LGA1700',ramTypes:['DDR5'],         formFactor:'ATX',  img:IMG.cpuIntel},
-    {id:'z790-tomahawk',name:'MAG Z790 Tomahawk WiFi',    brand:'MSI · LGA1700 DDR4/5', price:229,score:1,tier:'High', specs:['LGA1700','DDR4 & DDR5','ATX','PCIe 5.0'],         socket:'LGA1700',ramTypes:['DDR4','DDR5'], formFactor:'ATX',  img:IMG.cpuIntel},
+    {id:'x670e-hero', name:'ROG Crosshair X670E Hero',   brand:'ASUS · AM5 DDR5 E-ATX', price:499,score:3,tier:'Titan',specs:['AM5 Socket','DDR5 Only','E-ATX','PCIe 5.0'],       socket:'AM5',   ramTypes:['DDR5'],         formFactor:'E-ATX',img:IMG.cpuAMD,  buy:amzn('ASUS ROG Crosshair X670E Hero motherboard')},
+    {id:'x670e-ace',  name:'MEG X670E ACE',               brand:'MSI · AM5 DDR5 ATX',   price:399,score:2,tier:'Ultra',specs:['AM5 Socket','DDR5 Only','ATX','PCIe 5.0'],         socket:'AM5',   ramTypes:['DDR5'],         formFactor:'ATX',  img:IMG.cpuAMD,  buy:amzn('MSI MEG X670E ACE motherboard')},
+    {id:'b650-aorus', name:'B650 AORUS Elite AX',         brand:'Gigabyte · AM5 DDR5',  price:199,score:1,tier:'High', specs:['AM5 Socket','DDR5 Only','ATX','PCIe 4.0'],         socket:'AM5',   ramTypes:['DDR5'],         formFactor:'ATX',  img:IMG.cpuAMD,  buy:amzn('Gigabyte B650 AORUS Elite AX motherboard')},
+    {id:'z790-apex',  name:'ROG Maximus Z790 Apex',       brand:'ASUS · LGA1700 DDR5',  price:449,score:2,tier:'Ultra',specs:['LGA1700','DDR5 Only','ATX','PCIe 5.0'],            socket:'LGA1700',ramTypes:['DDR5'],         formFactor:'ATX',  img:IMG.cpuIntel,buy:amzn('ASUS ROG Maximus Z790 Apex motherboard')},
+    {id:'z790-tomahawk',name:'MAG Z790 Tomahawk WiFi',    brand:'MSI · LGA1700 DDR4/5', price:229,score:1,tier:'High', specs:['LGA1700','DDR4 & DDR5','ATX','PCIe 5.0'],         socket:'LGA1700',ramTypes:['DDR4','DDR5'], formFactor:'ATX',  img:IMG.cpuIntel,buy:amzn('MSI MAG Z790 Tomahawk WiFi motherboard')},
   ],
   ram:[
-    {id:'64ddr5',name:'64GB DDR5-6000 CL30',   brand:'G.Skill Trident Z5 RGB',      price:189,score:3,tier:'Ultra',specs:['64GB Dual Channel','DDR5-6000','CL30-36-36-96','XMP 3.0'],type:'DDR5',img:IMG.ram},
-    {id:'32ddr5',name:'32GB DDR5-6000 CL30',   brand:'Kingston Fury Beast RGB',     price:119,score:2,tier:'High', specs:['32GB Dual Channel','DDR5-6000','CL30','XMP 3.0'],        type:'DDR5',img:IMG.ram},
-    {id:'32ddr4',name:'32GB DDR4-3600 CL16',   brand:'Corsair Vengeance RGB Pro',   price:89, score:1,tier:'Mid',  specs:['32GB Dual Channel','DDR4-3600','CL16','XMP 2.0'],        type:'DDR4',img:IMG.ram},
-    {id:'16ddr5',name:'16GB DDR5-6000',         brand:'Crucial Pro',                price:79, score:0,tier:'Mid',  specs:['16GB Dual Channel','DDR5-6000','CL30'],                  type:'DDR5',img:IMG.ram},
+    {id:'64ddr5',name:'64GB DDR5-6000 CL30',   brand:'G.Skill Trident Z5 RGB',      price:189,score:3,tier:'Ultra',specs:['64GB Dual Channel','DDR5-6000','CL30-36-36-96','XMP 3.0'],type:'DDR5',img:IMG.ram,buy:amzn('G.Skill Trident Z5 RGB DDR5-6000 64GB')},
+    {id:'32ddr5',name:'32GB DDR5-6000 CL30',   brand:'Kingston Fury Beast RGB',     price:119,score:2,tier:'High', specs:['32GB Dual Channel','DDR5-6000','CL30','XMP 3.0'],        type:'DDR5',img:IMG.ram,buy:amzn('Kingston Fury Beast RGB DDR5-6000 32GB')},
+    {id:'32ddr4',name:'32GB DDR4-3600 CL16',   brand:'Corsair Vengeance RGB Pro',   price:89, score:1,tier:'Mid',  specs:['32GB Dual Channel','DDR4-3600','CL16','XMP 2.0'],        type:'DDR4',img:IMG.ram,buy:amzn('Corsair Vengeance RGB Pro DDR4-3600 32GB')},
+    {id:'16ddr5',name:'16GB DDR5-6000',         brand:'Crucial Pro',                price:79, score:0,tier:'Mid',  specs:['16GB Dual Channel','DDR5-6000','CL30'],                  type:'DDR5',img:IMG.ram,buy:amzn('Crucial Pro DDR5-6000 16GB')},
   ],
   storage:[
-    {id:'4tb-g4',name:'4TB PCIe Gen4 NVMe SSD', brand:'Samsung 990 Pro',  price:299,score:2,tier:'Ultra',specs:['4TB','7,450 MB/s Read','PCIe 4.0 x4'],img:IMG.ssd},
-    {id:'2tb-g4',name:'2TB PCIe Gen4 NVMe SSD', brand:'WD Black SN850X',  price:179,score:1,tier:'High', specs:['2TB','7,300 MB/s Read','PCIe 4.0 x4'],img:IMG.ssd},
-    {id:'2tb-g3',name:'2TB PCIe Gen3 NVMe SSD', brand:'Crucial P3 Plus',  price:129,score:0,tier:'Mid',  specs:['2TB','5,000 MB/s Read','PCIe 3.0 x4'],img:IMG.ssd},
-    {id:'1tb-g4',name:'1TB PCIe Gen4 NVMe SSD', brand:'Samsung 980 Pro',  price:109,score:0,tier:'Mid',  specs:['1TB','7,000 MB/s Read','PCIe 4.0 x4'],img:IMG.ssd},
+    {id:'4tb-g4',name:'4TB PCIe Gen4 NVMe SSD', brand:'Samsung 990 Pro',  price:299,score:2,tier:'Ultra',specs:['4TB','7,450 MB/s Read','PCIe 4.0 x4'],img:IMG.ssd,buy:amzn('Samsung 990 Pro 4TB NVMe SSD')},
+    {id:'2tb-g4',name:'2TB PCIe Gen4 NVMe SSD', brand:'WD Black SN850X',  price:179,score:1,tier:'High', specs:['2TB','7,300 MB/s Read','PCIe 4.0 x4'],img:IMG.ssd,buy:amzn('WD Black SN850X 2TB NVMe SSD')},
+    {id:'2tb-g3',name:'2TB PCIe Gen3 NVMe SSD', brand:'Crucial P3 Plus',  price:129,score:0,tier:'Mid',  specs:['2TB','5,000 MB/s Read','PCIe 3.0 x4'],img:IMG.ssd,buy:amzn('Crucial P3 Plus 2TB NVMe SSD')},
+    {id:'1tb-g4',name:'1TB PCIe Gen4 NVMe SSD', brand:'Samsung 980 Pro',  price:109,score:0,tier:'Mid',  specs:['1TB','7,000 MB/s Read','PCIe 4.0 x4'],img:IMG.ssd,buy:amzn('Samsung 980 Pro 1TB NVMe SSD')},
   ],
   cooling:[
-    {id:'360aio',name:'360mm AIO Liquid Cooler', brand:'NZXT Kraken Elite 360',          price:249,score:2,tier:'Ultra',specs:['360mm Radiator','LCD Display Head','6× 120mm Fans'], sockets:['AM5','LGA1700'],rad_mm:360,  height_mm:null,img:IMG.cooling},
-    {id:'280aio',name:'280mm AIO Liquid Cooler', brand:'Corsair H115i Elite Capellix',   price:149,score:1,tier:'High', specs:['280mm Radiator','RGB Pump Head','2× 140mm LL Fans'],  sockets:['AM5','LGA1700'],rad_mm:280,  height_mm:null,img:IMG.cooling},
-    {id:'240aio',name:'240mm AIO Liquid Cooler', brand:'Arctic Liquid Freezer III',      price:89, score:0,tier:'Mid',  specs:['240mm Radiator','VRM Fan','2× 120mm Fans'],           sockets:['AM5','LGA1700'],rad_mm:240,  height_mm:null,img:IMG.cooling},
-    {id:'air',   name:'Premium Air Tower',        brand:'Noctua NH-D15 chromax.black',   price:99, score:0,tier:'Mid',  specs:['Dual Tower Design','6 Copper Heatpipes','2× NF-A15 Fans'],sockets:['AM5','LGA1700'],rad_mm:null,height_mm:168, img:IMG.cooling},
+    {id:'360aio',name:'360mm AIO Liquid Cooler', brand:'NZXT Kraken Elite 360',        price:249,score:2,tier:'Ultra',specs:['360mm Radiator','LCD Display Head','6× 120mm Fans'], sockets:['AM5','LGA1700'],rad_mm:360,  height_mm:null,img:IMG.cooling,buy:amzn('NZXT Kraken Elite 360 AIO liquid cooler')},
+    {id:'280aio',name:'280mm AIO Liquid Cooler', brand:'Corsair H115i Elite Capellix', price:149,score:1,tier:'High', specs:['280mm Radiator','RGB Pump Head','2× 140mm LL Fans'],  sockets:['AM5','LGA1700'],rad_mm:280,  height_mm:null,img:IMG.cooling,buy:amzn('Corsair H115i Elite Capellix 280mm AIO')},
+    {id:'240aio',name:'240mm AIO Liquid Cooler', brand:'Arctic Liquid Freezer III',    price:89, score:0,tier:'Mid',  specs:['240mm Radiator','VRM Fan','2× 120mm Fans'],           sockets:['AM5','LGA1700'],rad_mm:240,  height_mm:null,img:IMG.cooling,buy:amzn('Arctic Liquid Freezer III 240mm AIO cooler')},
+    {id:'air',   name:'Premium Air Tower',        brand:'Noctua NH-D15 chromax.black', price:99, score:0,tier:'Mid',  specs:['Dual Tower Design','6 Copper Heatpipes','2× NF-A15'], sockets:['AM5','LGA1700'],rad_mm:null,height_mm:168, img:IMG.cooling,buy:amzn('Noctua NH-D15 chromax black CPU cooler')},
   ],
   case:[
-    {id:'ft',  name:'Full Tower Premium',    brand:'Lian Li O11 Dynamic EVO XL', price:199,score:2,tier:'Ultra',specs:['E-ATX / ATX','3× Tempered Glass','USB-C 3.2 Gen2'],formFactors:['E-ATX','ATX','mATX'],max_gpu_mm:420,max_cooler_mm:167,max_rad_mm:360,img:IMG.case},
-    {id:'mt-p',name:'Mid Tower — Premium',   brand:'NZXT H7 Flow RGB',           price:149,score:1,tier:'High', specs:['ATX','Perforated Mesh Front','Tempered Glass Side'],    formFactors:['ATX','mATX'],         max_gpu_mm:400,max_cooler_mm:165,max_rad_mm:360,img:IMG.case},
-    {id:'mt-s',name:'Mid Tower — Standard',  brand:'Fractal Design Pop Air',     price:99, score:0,tier:'Mid',  specs:['ATX','Mesh Front Panel','USB-C Front'],                  formFactors:['ATX','mATX'],         max_gpu_mm:360,max_cooler_mm:165,max_rad_mm:280,img:IMG.case},
+    {id:'ft',  name:'Full Tower Premium',    brand:'Lian Li O11 Dynamic EVO XL', price:199,score:2,tier:'Ultra',specs:['E-ATX / ATX','3× Tempered Glass','USB-C 3.2 Gen2'],formFactors:['E-ATX','ATX','mATX'],max_gpu_mm:420,max_cooler_mm:167,max_rad_mm:360,img:IMG.case,buy:amzn('Lian Li O11 Dynamic EVO XL case')},
+    {id:'mt-p',name:'Mid Tower — Premium',   brand:'NZXT H7 Flow RGB',           price:149,score:1,tier:'High', specs:['ATX','Perforated Mesh Front','Tempered Glass Side'],    formFactors:['ATX','mATX'],         max_gpu_mm:400,max_cooler_mm:165,max_rad_mm:360,img:IMG.case,buy:amzn('NZXT H7 Flow RGB mid tower case')},
+    {id:'mt-s',name:'Mid Tower — Standard',  brand:'Fractal Design Pop Air',     price:99, score:0,tier:'Mid',  specs:['ATX','Mesh Front Panel','USB-C Front'],                  formFactors:['ATX','mATX'],         max_gpu_mm:360,max_cooler_mm:165,max_rad_mm:280,img:IMG.case,buy:amzn('Fractal Design Pop Air ATX mid tower case')},
   ],
   psu:[
-    {id:'1000w',name:'1000W 80+ Titanium',brand:'Seasonic Prime TX-1000',   price:229,score:2,tier:'Ultra',specs:['1000W Output','80 Plus Titanium','Fully Modular'],watts:1000,img:IMG.psu},
-    {id:'850w', name:'850W 80+ Gold',     brand:'Corsair RM850x SHIFT',     price:139,score:1,tier:'High', specs:['850W Output','80 Plus Gold','Fully Modular'],   watts:850, img:IMG.psu},
-    {id:'750w', name:'750W 80+ Gold',     brand:'EVGA SuperNOVA 750 G6',   price:109,score:0,tier:'Mid',  specs:['750W Output','80 Plus Gold','Fully Modular'],   watts:750, img:IMG.psu},
-    {id:'650w', name:'650W 80+ Bronze',   brand:'EVGA 650 B7',              price:79, score:0,tier:'Mid',  specs:['650W Output','80 Plus Bronze','Semi-Modular'],  watts:650, img:IMG.psu},
+    {id:'1000w',name:'1000W 80+ Titanium',brand:'Seasonic Prime TX-1000',   price:229,score:2,tier:'Ultra',specs:['1000W','80 Plus Titanium','Fully Modular'],watts:1000,img:IMG.psu,buy:amzn('Seasonic Prime TX-1000 1000W PSU')},
+    {id:'850w', name:'850W 80+ Gold',     brand:'Corsair RM850x SHIFT',     price:139,score:1,tier:'High', specs:['850W','80 Plus Gold','Fully Modular'],   watts:850, img:IMG.psu,buy:amzn('Corsair RM850x SHIFT 850W PSU')},
+    {id:'750w', name:'750W 80+ Gold',     brand:'EVGA SuperNOVA 750 G6',   price:109,score:0,tier:'Mid',  specs:['750W','80 Plus Gold','Fully Modular'],   watts:750, img:IMG.psu,buy:amzn('EVGA SuperNOVA 750 G6 750W PSU')},
+    {id:'650w', name:'650W 80+ Bronze',   brand:'EVGA 650 B7',              price:79, score:0,tier:'Mid',  specs:['650W','80 Plus Bronze','Semi-Modular'],  watts:650, img:IMG.psu,buy:amzn('EVGA 650 B7 650W Bronze PSU')},
   ],
 };
 const PRESETS={
@@ -432,12 +431,12 @@ function checkCompat(){
 function compatWarningsFor(cat){
   return checkCompat().filter(i=>i.cat.includes(cat));
 }
-function loadPreset(k){const p=PRESETS[k];Object.keys(p).forEach(cat=>{picks[cat]=COMPS[cat].find(c=>c.id===p[cat])});renderAll();update3D();}
-function clearBuild(){picks={};renderAll();update3D();}
+function loadPreset(k){const p=PRESETS[k];Object.keys(p).forEach(cat=>{picks[cat]=COMPS[cat].find(c=>c.id===p[cat])});renderAll();}
+function clearBuild(){picks={};renderAll();}
 function setCat(c){curCat=c;renderTabs();renderList();}
 function pick(cat,id){
   picks[cat]=COMPS[cat].find(c=>c.id===id);
-  renderAll();update3D();
+  renderAll();
   const next=CATS.find(c=>!picks[c.id]);
   if(next)setTimeout(()=>setCat(next.id),120);
 }
@@ -475,22 +474,103 @@ function renderList(){
     </div>`;
   }).join('');
 }
-function renderSlots(){
-  document.getElementById('ov-slots').innerHTML=CATS.map(c=>{
+function renderBuildSummary(){
+  const cnt=Object.keys(picks).length;
+  const total=Object.values(picks).reduce((s,p)=>s+p.price,0);
+  const issues=checkCompat();
+  const errors=issues.filter(x=>x.sev==='error');
+  const sc=cnt>0&&picks.gpu?getScore():0;
+  const t=sc>0?tierOf(sc):null;
+
+  const priceStr=cnt>0?'$'+total.toLocaleString():'—';
+  const tierHtml=t
+    ?'<div class="sum-tier"><span class="tier-badge t'+picks.gpu.tier+'" style="font-size:11px;padding:4px 12px">'+t.l+' · '+sc+'/100</span></div>'
+    :'<div style="font-size:12px;color:var(--text-dim);margin-top:8px">Select components to start</div>';
+  const pipColor=errors.length>0?'var(--red)':'var(--accent)';
+  const pipsHtml=CATS.map(c=>'<div style="width:14px;height:4px;border-radius:2px;background:'+(picks[c.id]?pipColor:'var(--border-hover)')+'"></div>').join('');
+  const countHtml=cnt>0
+    ?'<div style="text-align:right"><div style="font-size:10px;color:var(--text-dim);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px">'+cnt+'/8 parts</div><div style="display:flex;gap:3px;justify-content:flex-end">'+pipsHtml+'</div></div>'
+    :'';
+
+  const headerHtml=
+    '<div class="sum-header">'+
+      '<div>'+
+        '<div class="sum-title">Your Build</div>'+
+        '<div class="sum-price">'+priceStr+'</div>'+
+        tierHtml+
+      '</div>'+
+      countHtml+
+    '</div>';
+
+  const rowsHtml=CATS.map(c=>{
     const p=picks[c.id];
-    const name=p?p.name.replace('NVIDIA ','').replace('AMD ','').replace('Intel ','').substring(0,22):'';
-    return`<div class="slot-row">
-      <div class="slot-dot" style="background:${p?'#b3431c':'rgba(20,20,18,0.16)'};${p?'box-shadow:0 0 6px rgba(179,67,28,0.4)':''}"></div>
-      <span class="slot-name" style="color:${p?'var(--text)':'var(--text-dim)'}">${p?name:c.label.replace(' ← last','')}</span>
-    </div>`;
+    if(p){
+      return '<div class="sum-row">'+
+        '<span class="sum-cat">'+c.label+'</span>'+
+        '<img class="sum-img" src="'+p.img+'" alt="'+p.name+'" loading="lazy">'+
+        '<div style="flex:1;min-width:0"><div class="sum-name">'+p.name+'</div><div class="sum-brand">'+p.brand+'</div></div>'+
+        '<div class="sum-price-col">'+
+          '<div class="sum-part-price">$'+p.price.toLocaleString()+'</div>'+
+          '<a class="sum-buy-btn" href="'+p.buy+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">'+
+            '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M20.153 8.304A7.344 7.344 0 0 0 13 2C9.243 2 6.097 4.611 5.202 8.152A5.002 5.002 0 0 0 7 18h13a5 5 0 0 0 .153-9.696z"/></svg> Amazon'+
+          '</a>'+
+        '</div>'+
+      '</div>';
+    }
+    return '<div class="sum-row-empty" data-id="'+c.id+'" onclick="setCat(this.dataset.id);document.getElementById(\'comp-list\').scrollTop=0">'+
+      '<span class="sum-cat">'+c.label+'</span>'+
+      '<div style="width:44px;height:36px;border-radius:6px;background:var(--surface3);flex-shrink:0;display:flex;align-items:center;justify-content:center">'+
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'+
+      '</div>'+
+      '<div class="sum-empty-label">Add '+c.label+'</div>'+
+      '<span class="sum-add-btn">Select →</span>'+
+    '</div>';
   }).join('');
-  document.getElementById('rgb-strip').style.display=Object.keys(picks).length>2?'flex':'none';
+  const partsHtml='<div class="sum-parts">'+rowsHtml+'</div>';
+
+  let compatHtml='';
+  if(cnt>=2){
+    if(issues.length>0){
+      const issueRows=issues.map(x=>{
+        const col=x.sev==='error'?'#c4321f':'#9a6b15';
+        const icon=x.sev==='error'?'✗':'!';
+        return '<div style="display:flex;gap:8px;margin-bottom:6px;font-size:11.5px;line-height:1.45">'+
+          '<span style="color:'+col+';font-weight:700;flex-shrink:0">'+icon+'</span>'+
+          '<span style="color:'+col+'">'+x.msg+'</span></div>';
+      }).join('');
+      compatHtml='<div class="sum-compat" style="border-color:rgba(196,50,31,0.3);background:rgba(196,50,31,0.04)">'+
+        '<div style="font-size:10px;font-weight:700;letter-spacing:.8px;color:#c4321f;margin-bottom:8px">COMPATIBILITY ISSUES</div>'+
+        issueRows+'</div>';
+    } else {
+      compatHtml='<div class="sum-compat" style="border-color:rgba(28,125,77,0.25);background:rgba(28,125,77,0.05)">'+
+        '<div style="font-size:12px;font-weight:600;color:var(--green);display:flex;align-items:center;gap:7px">'+
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'+
+          ' All components compatible — physically and electrically verified</div></div>';
+    }
+  }
+
+  const buyAllHtml=cnt>=4
+    ?'<div class="sum-buy-all">'+
+        '<div>'+
+          '<div style="font-size:11px;font-weight:600;opacity:.55;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px">Total Build Cost</div>'+
+          '<div class="sum-buy-all-price">$'+total.toLocaleString()+'</div>'+
+          '<div class="sum-buy-all-sub">Opens '+cnt+' Amazon tabs · tag: '+AMZN_TAG+'</div>'+
+        '</div>'+
+        '<button class="sum-buy-all-btn" onclick="openAllLinks()">Buy All Parts on Amazon →</button>'+
+      '</div>'
+    :'';
+
+  document.getElementById('build-summary').innerHTML=headerHtml+partsHtml+compatHtml+buyAllHtml;
 }
+
+function openAllLinks(){
+  Object.values(picks).forEach((p,i)=>setTimeout(()=>window.open(p.buy,'_blank'),i*200));
+}
+
 function renderAll(){
-  renderTabs();renderList();renderSlots();
+  renderTabs();renderList();renderBuildSummary();
   const cnt=Object.keys(picks).length,total=Object.values(picks).reduce((s,p)=>s+p.price,0);
   document.getElementById('total-price').textContent=`$${total.toLocaleString()}`;
-  document.getElementById('ov-price').textContent=`$${total.toLocaleString()}`;
   const issues=checkCompat();
   const errors=issues.filter(x=>x.sev==='error');
   const warns=issues.filter(x=>x.sev==='warn');
@@ -498,27 +578,18 @@ function renderAll(){
   document.getElementById('parts-label').textContent=`${cnt} of 8 components selected`;
   const pips=document.getElementById('parts-pips');
   pips.innerHTML=CATS.map(c=>`<div class="parts-pip" style="background:${picks[c.id]?'var(--accent)':'var(--border-hover)'}"></div>`).join('');
-  // Compat status strip
   const cs=document.getElementById('compat-strip');
   if(cnt>=2&&issues.length>0){
     cs.style.display='';
-    cs.innerHTML=issues.map(x=>`<div style="display:flex;align-items:flex-start;gap:7px;padding:7px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:11px;flex-shrink:0;margin-top:1px">${x.sev==='error'?'✗':'!'}</span>
-      <span style="font-size:11px;color:${x.sev==='error'?'#c4321f':'#9a6b15'};font-weight:500;line-height:1.45">${x.msg}</span>
-    </div>`).join('')+`<div style="font-size:10px;color:var(--text-dim);padding-top:6px">${errors.length} conflict${errors.length!==1?'s':''} · ${warns.length} warning${warns.length!==1?'s':''}</div>`;
+    cs.innerHTML=issues.map(x=>`<div style="display:flex;align-items:flex-start;gap:7px;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:11px;flex-shrink:0;color:${x.sev==='error'?'#c4321f':'#9a6b15'}">${x.sev==='error'?'✗':'!'}</span>
+      <span style="font-size:11px;color:${x.sev==='error'?'#c4321f':'#9a6b15'};font-weight:500;line-height:1.4">${x.msg}</span>
+    </div>`).join('')+`<div style="font-size:10px;color:var(--text-dim);padding-top:5px">${errors.length} conflict${errors.length!==1?'s':''} · ${warns.length} warning${warns.length!==1?'s':''}</div>`;
   } else if(cnt>=2){
     cs.style.display='';
-    cs.innerHTML=`<div style="font-size:11px;color:var(--green);font-weight:600;display:flex;align-items:center;gap:6px">✓ All components compatible</div>`;
+    cs.innerHTML=`<div style="font-size:11px;color:var(--green);font-weight:600">✓ All components compatible</div>`;
   } else { cs.style.display='none'; }
   if(cnt>=8&&errors.length===0){document.getElementById('compat-badge').style.display='';document.getElementById('hdr-order-btn').style.display='';}
-  else{document.getElementById('compat-badge').style.display='none';document.getElementById('hdr-order-btn').style.display='none';}
-  if(cnt>0&&picks.gpu){
-    const sc=getScore(),t=tierOf(sc);
-    document.getElementById('ov-score').innerHTML=`<span style="color:${t.c};font-weight:600">${sc} <span style="font-size:10px;opacity:.6">/ 100</span></span>`;
-  } else {
-    document.getElementById('ov-score').innerHTML='<span style="color:var(--text-dim)">—</span>';
-  }
-  if(cnt>=6){document.getElementById('compat-badge').style.display='';document.getElementById('hdr-order-btn').style.display='';}
   else{document.getElementById('compat-badge').style.display='none';document.getElementById('hdr-order-btn').style.display='none';}
 }
 function showBench(){
@@ -587,319 +658,7 @@ function renderGameGrid(){
       ctx.globalAlpha=1;t++;requestAnimationFrame(draw);
     })();
   });
-}
-
-// ============================================================
-//  THREE.JS 3D SCENE
-// ============================================================
-(function init3D(){
-  if(typeof THREE==='undefined'){setTimeout(init3D,80);return;}
-  const canvas=document.getElementById('c3d');
-  const vp=canvas.parentElement;
-  function sz(){return{w:vp.clientWidth,h:vp.clientHeight};}
-  const {w,h}=sz();
-
-  const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-  renderer.setSize(w,h);
-  renderer.shadowMap.enabled=true;
-  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-  renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure=1.3;
-  renderer.setClearColor(0xe5e3dd);
-
-  const scene=new THREE.Scene();
-  scene.fog=new THREE.Fog(0xe5e3dd,5,11);
-
-  const camera=new THREE.PerspectiveCamera(42,w/h,0.01,20);
-  // Camera pulled back so the whole case is visible by default
-  camera.position.set(-1.9,0.75,1.7);
-
-  const controls=new THREE.OrbitControls(camera,canvas);
-  controls.enableDamping=true;controls.dampingFactor=0.05;
-  controls.minDistance=1.0;controls.maxDistance=4.5;
-  controls.target.set(0.05,0.0,0);controls.update();
-
-  // Floor grid
-  const grid=new THREE.GridHelper(8,30,0xb8b6ae,0xcfcdc6);
-  grid.position.y=-0.57;scene.add(grid);
-
-  // ── LIGHTING (MUCH BRIGHTER) ──
-  // Bright ambient
-  scene.add(new THREE.AmbientLight(0xffffff,1.3));
-  // Key light from top-left
-  const key=new THREE.DirectionalLight(0xffffff,1.7);
-  key.position.set(-3,5,3);key.castShadow=true;
-  key.shadow.mapSize.set(1024,1024);scene.add(key);
-  // Fill from right
-  const fill=new THREE.DirectionalLight(0xaabbff,1.2);
-  fill.position.set(3,2,-1);scene.add(fill);
-  // Rim light from behind
-  const rim=new THREE.DirectionalLight(0x6699ff,0.8);
-  rim.position.set(0,3,-3);scene.add(rim);
-  // Front light (toward camera direction) — brightens front face
-  const front=new THREE.DirectionalLight(0xffffff,0.8);
-  front.position.set(-2,1,4);scene.add(front);
-  // Under-glow
-  const under=new THREE.PointLight(0x3333ff,1.0,2.0);
-  under.position.set(0,-0.4,0);scene.add(under);
-
-  // RGB interior point lights
-  const rgbPts=[];
-  [[0,0.15,-0.08],[0.05,-0.22,0.08],[0.05,0.35,-0.08]].forEach((p,i)=>{
-    const l=new THREE.PointLight(0x00ffff,3.5,0.9);l.position.set(...p);scene.add(l);
-    rgbPts.push({l,o:i*(Math.PI*2/3)});
-  });
-
-  // ── HELPERS ──
-  function bx(w,h,d,mat,px=0,py=0,pz=0){
-    const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
-    m.position.set(px,py,pz);m.castShadow=true;m.receiveShadow=true;return m;
   }
-  function cyl(rt,rb,h,seg,mat,px=0,py=0,pz=0){
-    const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg),mat);
-    m.position.set(px,py,pz);return m;
-  }
-  function tor(r,t,seg,mat){return new THREE.Mesh(new THREE.TorusGeometry(r,t,8,seg),mat);}
-  function rgb(col=0x00ffff,ei=5){return new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:ei});}
-
-  // ── MATERIALS (BRIGHTER, BETTER) ──
-  const mCase=new THREE.MeshStandardMaterial({color:0xe2e2e2,metalness:0.12,roughness:0.4}); // bright white, less glare
-  const mCaseMesh=new THREE.MeshStandardMaterial({color:0x141414,metalness:0.7,roughness:0.15});
-  const mGlass=new THREE.MeshBasicMaterial({color:0x335577,transparent:true,opacity:0.16,side:THREE.DoubleSide,depthWrite:false});
-  const mPCB=new THREE.MeshStandardMaterial({color:0x0d2010,metalness:0.1,roughness:0.75}); // visible dark green
-  const mGPU=new THREE.MeshStandardMaterial({color:0x181818,metalness:0.55,roughness:0.2});
-  const mAlum=new THREE.MeshStandardMaterial({color:0xcccccc,metalness:0.7,roughness:0.22});
-  const mRAM=new THREE.MeshStandardMaterial({color:0xf2f2f2,metalness:0.2,roughness:0.35});
-  const mFan=new THREE.MeshStandardMaterial({color:0x222222,metalness:0.45,roughness:0.35,side:THREE.DoubleSide});
-  const mFanFrame=new THREE.MeshStandardMaterial({color:0x202020,metalness:0.6,roughness:0.28});
-  const mSocket=new THREE.MeshStandardMaterial({color:0x998855,metalness:0.8,roughness:0.18});
-  const mDark=new THREE.MeshStandardMaterial({color:0x0a0a0a,metalness:0.5,roughness:0.3});
-  const mSilver=new THREE.MeshStandardMaterial({color:0xaaaaaa,metalness:0.75,roughness:0.2});
-
-  const CC=new THREE.Color();
-  const allSpinners=[];
-  const allRGB=[];
-
-  function makeFan(size,col=0x00aaff){
-    const fg=new THREE.Group();
-    fg.add(bx(size,size,0.022,mFanFrame));
-    const spin=new THREE.Group();
-    for(let b=0;b<7;b++){
-      const a=(b/7)*Math.PI*2;
-      const bl=bx(size*.25,size*.4,0.008,mFan,Math.sin(a)*size*.22,Math.cos(a)*size*.22,0.005);
-      bl.rotation.z=a+0.5;spin.add(bl);
-    }
-    spin.add(cyl(size*.08,size*.08,0.018,12,mDark));
-    fg.add(spin);
-    const rm=rgb(col,4.5);
-    const ring=tor(size*.43,0.007,48,rm);fg.add(ring);
-    const pl=new THREE.PointLight(col,3.0,size*3.5);fg.add(pl);
-    allSpinners.push(spin);
-    allRGB.push({mat:rm,pl,offset:Math.random()*Math.PI*2});
-    return fg;
-  }
-
-  // ── COMPONENT MESH BUILDERS ──
-  const meshes={};
-
-  function buildMotherboard(){
-    const g=new THREE.Group();
-    g.add(bx(0.018,0.72,0.56,mPCB));
-    // PCIe slots
-    for(let i=0;i<4;i++) g.add(bx(0.022,0.008,0.38,new THREE.MeshStandardMaterial({color:0x333333,metalness:0.8,roughness:0.2}),0.001,-0.08+i*0.07,0.02));
-    // CPU socket
-    g.add(bx(0.022,0.12,0.12,mSocket,0.001,0.18,-0.06));
-    g.add(bx(0.022,0.09,0.09,mDark,0.001,0.18,-0.06));
-    // RAM slots
-    for(let i=0;i<4;i++) g.add(bx(0.022,0.46,0.032,new THREE.MeshStandardMaterial({color:0x2a2a2a,metalness:0.7,roughness:0.2}),0.001,0.12,0.065+i*0.048));
-    // VRM heatsinks
-    for(let i=0;i<3;i++){
-      g.add(bx(0.04,0.065,0.04,mDark,0.02,0.26,0.06+i*0.048));
-      for(let f=0;f<6;f++) g.add(bx(0.038,0.002,0.04,mSilver,0.02,0.238+f*0.006,0.06+i*0.048));
-    }
-    // IO shield
-    g.add(bx(0.04,0.15,0.34,new THREE.MeshStandardMaterial({color:0x555555,metalness:0.8,roughness:0.1}),0.022,0.28,-0.22));
-    // Chipset heatsink
-    g.add(bx(0.04,0.06,0.06,mDark,0.02,-0.04,-0.15));
-    // RGB accent bar bottom
-    const rm=rgb(0x0088ff,3.5);
-    g.add(bx(0.024,0.008,0.56,rm,0,-0.365,0));
-    allRGB.push({mat:rm,pl:null,offset:1.4});
-    g.position.set(0.21,0.02,0.0);
-    return g;
-  }
-
-  function buildGPU(){
-    const g=new THREE.Group();
-    // GPU vertical mount (fans face -X toward glass/camera)
-    g.add(bx(0.018,0.46,0.12,mPCB,-0.01,0,0));
-    g.add(bx(0.072,0.46,0.122,mGPU,0.028,0,0));
-    // Heatsink fins (bright silver)
-    for(let i=0;i<16;i++) g.add(bx(0.065,0.002,0.118,mSilver,0.028,-0.19+i*0.024,0));
-    // GPU RGB bar
-    const gr=rgb(0xff00cc,4);
-    g.add(bx(0.075,0.01,0.125,gr,0.03,0.225,0));
-    allRGB.push({mat:gr,pl:null,offset:2.2});
-    // 3 fans facing -X
-    [-0.14,0,0.14].forEach((z,i)=>{
-      const f=makeFan(0.13,0x00d4ff);
-      f.rotation.y=Math.PI/2;f.position.set(-0.008,0,z);g.add(f);
-    });
-    // Backplate
-    g.add(bx(0.008,0.46,0.122,new THREE.MeshStandardMaterial({color:0x282828,metalness:0.7,roughness:0.2}),0.075,0,0));
-    // Bracket with ports
-    g.add(bx(0.01,0.46,0.025,new THREE.MeshStandardMaterial({color:0x666666,metalness:0.8,roughness:0.1}),0.078,0,0.073));
-    for(let i=0;i<3;i++) g.add(bx(0.015,0.018,0.01,mDark,0.08,-0.05+i*0.08,0.073));
-    g.position.set(-0.06,-0.28,0);
-    return g;
-  }
-
-  function buildCooling(){
-    const g=new THREE.Group();
-    // Radiator
-    g.add(bx(0.025,0.14,0.46,mAlum,0,0,0));
-    for(let i=0;i<24;i++) g.add(bx(0.02,0.003,0.46,new THREE.MeshStandardMaterial({color:0xbbbbbb,metalness:0.6,roughness:0.3}),0,-0.07+i*0.0058,0));
-    // Tubes
-    g.add(bx(0.012,0.22,0.012,mDark,0.02,0.14,-0.05));
-    g.add(bx(0.012,0.22,0.012,mDark,0.02,0.14,-0.11));
-    // Pump head
-    const pump=cyl(0.045,0.045,0.04,20,mDark,0.02,0.28,-0.08);pump.rotation.z=Math.PI/2;g.add(pump);
-    // Pump RGB ring
-    const pr=rgb(0x00ffcc,4.5);
-    const pring=tor(0.038,0.008,36,pr);pring.rotation.y=Math.PI/2;pring.position.set(0.005,0.28,-0.08);g.add(pring);
-    allRGB.push({mat:pr,pl:null,offset:0.7});
-    // 3 AIO fans
-    for(let i=0;i<3;i++){const f=makeFan(0.13,0x00aaff);f.rotation.y=Math.PI/2;f.position.set(-0.07,0,-0.155+i*0.155);g.add(f);}
-    g.position.set(0.1,0.42,-0.08);
-    return g;
-  }
-
-  function buildRAM(){
-    const g=new THREE.Group();
-    for(let i=0;i<4;i++){
-      const sg=new THREE.Group();
-      sg.add(bx(0.018,0.46,0.034,mRAM));
-      sg.add(bx(0.022,0.018,0.036,rgb(0x00ccff,5),0,0.24,0));
-      allRGB.push({mat:sg.children[1].material,pl:null,offset:i*0.45});
-      sg.position.set(0,0,i*0.048);
-      g.add(sg);
-    }
-    g.position.set(0.22,0.12,0.06);
-    return g;
-  }
-
-  function buildStorage(){
-    const g=new THREE.Group();
-    g.add(bx(0.022,0.008,0.18,new THREE.MeshStandardMaterial({color:0x1a2e1a,metalness:0.15,roughness:0.75})));
-    for(let i=0;i<4;i++) g.add(bx(0.024,0.01,0.028,new THREE.MeshStandardMaterial({color:0x333333,metalness:0.6,roughness:0.3}),0,0.003,-0.065+i*0.038));
-    g.add(bx(0.032,0.016,0.18,mSilver,0,0.008,0));
-    g.position.set(0.22,-0.02,-0.15);
-    return g;
-  }
-
-  function buildPSU(){
-    const g=new THREE.Group();
-    g.add(bx(0.46,0.09,0.18,new THREE.MeshStandardMaterial({color:0x121212,metalness:0.6,roughness:0.3})));
-    const f=makeFan(0.07,0x555555);f.position.set(0,0.046,0.02);f.rotation.x=-Math.PI/2;g.add(f);
-    for(let i=0;i<5;i++) g.add(bx(0.018,0.016,0.01,mDark,-0.1+i*0.055,-0.025,0.09));
-    g.position.set(0.02,-0.47,-0.12);
-    return g;
-  }
-
-  function buildCase(){
-    const g=new THREE.Group();
-    const CW=0.52,CH=1.08,CD=0.86,T=0.02;
-    // White shell exterior + dark interior backplate (PC interiors are black so parts pop through the glass)
-    g.add(bx(CW,CH,T,mCase,0,0,-CD/2));  // back (exterior face)
-    g.add(bx(CW*0.97,CH*0.97,0.01,mDark,0,0,-CD/2+T));  // back interior liner
-    g.add(bx(CW,T,CD,mCase,0,-CH/2,0));  // bottom
-    g.add(bx(CW,T,CD,mCase,0,CH/2,0));   // top
-    g.add(bx(T,CH,CD,mDark,CW/2,0,0));   // right solid — dark interior face
-    // Front dark mesh
-    g.add(bx(CW,CH,T,mCaseMesh,0,0,CD/2));
-    for(let i=0;i<8;i++) g.add(bx(CW*0.85,0.006,T*2,new THREE.MeshStandardMaterial({color:0x181818,metalness:0.8,roughness:0.1}),0,-CH/2+0.07+i*0.12,CD/2+0.005));
-    // Power btn RGB
-    const bm=rgb(0x00d4ff,2.5);g.add(bx(0.024,0.024,0.006,bm,CW*0.22,CH*0.4,CD/2+0.006));
-    allRGB.push({mat:bm,pl:null,offset:3.1});
-    // Glass panel (left, facing camera)
-    const gm=bx(T*0.4,CH-0.04,CD-0.04,mGlass,-CW/2,0,0);gm.renderOrder=999;g.add(gm);
-    // Glass frame (thin silver border only, not a solid slab — must not block the glass)
-    const fx=-CW/2+T*0.3;
-    g.add(bx(T*0.6,CH,0.02,mAlum,fx,0,-CD/2+0.01));
-    g.add(bx(T*0.6,CH,0.02,mAlum,fx,0,CD/2-0.01));
-    g.add(bx(T*0.6,0.02,CD,mAlum,fx,CH/2-0.01,0));
-    g.add(bx(T*0.6,0.02,CD,mAlum,fx,-CH/2+0.01,0));
-    // Feet
-    [[-CW/2+0.06,-CD/2+0.06],[CW/2-0.06,-CD/2+0.06],[-CW/2+0.06,CD/2-0.06],[CW/2-0.06,CD/2-0.06]].forEach(([x,z])=>{
-      g.add(bx(0.04,0.025,0.04,mDark,x,-CH/2-0.012,z));
-    });
-    // Bottom RGB strip (bright!)
-    const sm=rgb(0xff00ff,4);
-    g.add(bx(0.006,CW*0.75,0.01,sm,0.1,-CH/2+T+0.012,0.05));
-    const sl=new THREE.PointLight(0xff00ff,2.0,1.0);sl.position.set(0,-0.5,0);g.add(sl);
-    allRGB.push({mat:sm,pl:sl,offset:1.8});
-    // Front intake fans (3)
-    for(let i=0;i<3;i++){const f=makeFan(0.14,0x0066ff);f.position.set(0,-0.26+i*0.26,CD/2-0.02);g.add(f);}
-    return g;
-  }
-
-  // Build all groups, start invisible
-  meshes.motherboard=buildMotherboard();scene.add(meshes.motherboard);meshes.motherboard.visible=false;
-  meshes.gpu=buildGPU();scene.add(meshes.gpu);meshes.gpu.visible=false;
-  meshes.cooling=buildCooling();scene.add(meshes.cooling);meshes.cooling.visible=false;
-  meshes.ram=buildRAM();scene.add(meshes.ram);meshes.ram.visible=false;
-  meshes.storage=buildStorage();scene.add(meshes.storage);meshes.storage.visible=false;
-  meshes.psu=buildPSU();scene.add(meshes.psu);meshes.psu.visible=false;
-  meshes.case=buildCase();scene.add(meshes.case);meshes.case.visible=false;
-
-  function animIn(grp){
-    grp.visible=true;grp.scale.setScalar(0.01);
-    const t0=Date.now();
-    (function s(){const p=Math.min((Date.now()-t0)/420,1);grp.scale.setScalar(1-Math.pow(1-p,3));if(p<1)requestAnimationFrame(s);})();
-  }
-  function animOut(grp){
-    if(!grp.visible)return;
-    const t0=Date.now();
-    (function s(){const p=Math.min((Date.now()-t0)/200,1);grp.scale.setScalar(1-p);if(p<1)requestAnimationFrame(s);else grp.visible=false;})();
-  }
-
-  window.update3D=function(){
-    const show=(cat,mesh)=>{const w=!!picks[cat];if(w&&!mesh.visible)animIn(mesh);else if(!w&&mesh.visible)animOut(mesh);};
-    show('gpu',meshes.gpu);show('psu',meshes.psu);show('storage',meshes.storage);
-    const wantMB=!!(picks.cpu||picks.ram||picks.storage);
-    if(wantMB&&!meshes.motherboard.visible)animIn(meshes.motherboard);
-    else if(!wantMB&&meshes.motherboard.visible)animOut(meshes.motherboard);
-    show('ram',meshes.ram);show('cooling',meshes.cooling);show('case',meshes.case);
-  };
-
-  // ── ANIMATION LOOP ──
-  let t=0;
-  function animate(){
-    requestAnimationFrame(animate);t+=0.016;
-    const hue=(t*0.06)%1;
-    // Spin fans
-    allSpinners.forEach((sg,i)=>{sg.rotation.z+=0.14+i*0.003;});
-    // RGB cycle
-    allRGB.forEach(item=>{
-      const h=(hue+item.offset*0.09)%1;
-      CC.setHSL(h,1,0.55);
-      item.mat.color.copy(CC);item.mat.emissive.copy(CC);
-      if(item.pl)item.pl.color.copy(CC);
-    });
-    // Interior lights
-    rgbPts.forEach(({l,o})=>{CC.setHSL((hue+o/(Math.PI*2))%1,1,0.5);l.color.copy(CC);l.intensity=3+Math.sin(t*2+o);});
-
-    controls.update();
-    renderer.render(scene,camera);
-  }
-  animate();
-
-  window.addEventListener('resize',()=>{
-    const {w,h}=sz();
-    camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);
-  });
-})();
 
 renderAll();
 </script>
